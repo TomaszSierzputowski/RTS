@@ -1,6 +1,10 @@
-[gd_scene load_steps=2 format=3 uid="uid://c3khkm0oi4bt8"]
+[gd_scene load_steps=3 format=3 uid="uid://c3khkm0oi4bt8"]
 
 [ext_resource type="Script" path="res://Shared/base_scene.gd" id="1_7rlxp"]
+[ext_resource type="Script" path="res://Shared/network.gd" id="2_njhbx"]
 
 [node name="BaseScene" type="Node"]
 script = ExtResource("1_7rlxp")
+
+[node name="Network" type="Node" parent="."]
+script = ExtResource("2_njhbx")

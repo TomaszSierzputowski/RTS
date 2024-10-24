@@ -5,34 +5,51 @@
 [node name="MainMenu" type="Node"]
 script = ExtResource("1_b4utr")
 
-[node name="TestButton" type="Button" parent="."]
+[node name="ConnectButton" type="Button" parent="."]
 anchors_preset = 8
 anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -100.0
+offset_left = -150.0
 offset_top = -65.0
-offset_right = 100.0
+offset_right = 150.0
 offset_bottom = -5.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_font_sizes/font_size = 30
-text = "Test"
+text = "Connect"
 
-[node name="ServerIpInput" type="TextEdit" parent="."]
+[node name="ServerIpInput" type="TextEdit" parent="ConnectButton"]
+layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -100.0
-offset_top = 5.0
-offset_right = 100.0
-offset_bottom = 65.0
+offset_left = -150.0
+offset_top = 40.0
+offset_right = 50.0
+offset_bottom = 85.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_font_sizes/font_size = 20
 placeholder_text = "server ip"
 
-[connection signal="pressed" from="TestButton" to="." method="_on_test_button_pressed"]
+[node name="PortInput" type="TextEdit" parent="ConnectButton"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = 50.0
+offset_top = 40.0
+offset_right = 150.0
+offset_bottom = 85.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_font_sizes/font_size = 20
+placeholder_text = "port"
+
+[connection signal="pressed" from="ConnectButton" to="." method="_on_connect_button_pressed"]
