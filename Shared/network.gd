@@ -1,5 +1,4 @@
 extends Node
-class_name NetworkManager
 
 @rpc("any_peer")
 func sm(packet : PackedByteArray) -> void:
@@ -10,12 +9,10 @@ func sm(packet : PackedByteArray) -> void:
 	print("Received message: " + message)
 
 func _send_message(message : String) -> void:
-	var packet : PackedByteArray = serialize_string(message)
-	sm.rpc(packet)
+	sm.rpc(serialize_string(message))
 
 func _send_message_id(id : int, message : String) -> void:
-	var packet : PackedByteArray = serialize_string(message)
-	sm.rpc_id(id, packet)
+	sm.rpc_id(id, serialize_string(message))
 
 func serialize_string(string : String) -> PackedByteArray:
 	var txt : PackedByteArray = string.to_ascii_buffer()
