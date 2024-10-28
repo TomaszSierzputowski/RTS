@@ -1,6 +1,9 @@
 @tool
 extends EditorExportPlugin
 
+func _get_name() -> String:
+	return "rts-export-plugin"
+
 func _export_begin(features: PackedStringArray, is_debug: bool, path: String, flags: int) -> void:
 	var file = FileAccess.open("res://.godot/extension_list.cfg", FileAccess.WRITE)
 	file.store_string("res://addons/godot-sqlite/gdsqlite.gdextension")
