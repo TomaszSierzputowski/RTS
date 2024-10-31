@@ -1,23 +1,44 @@
 extends Node
 
-@rpc("any_peer")
+signal response()
+var err_no : Error
+
+signal sign_up(login : String, password : String)
+signal sign_in(login : String, password : String)
+
+@rpc("any_peer", "call_remote", "reliable")
+func r(err : Error) -> void:
+	err_no = err
+	response.emit()
+
+func respond(err : Error) -> void:
+	r.rpc(err)
+
+func respond_id(id : int, err : Error) -> void:
+	r.rpc_id(id, err)
+
+@rpc("any_peer", "call_remote", "reliable")
 func sm(packet : PackedByteArray) -> void:
-	var size : int = packet[0]
-	packet.remove_at(0)
-	packet = packet.decompress(size)
-	var message : String = packet.get_string_from_ascii()
-	print("Received message: " + message)
+	print("Received message: " + Serializer.deserialize_string(packet))
 
 func _send_message(message : String) -> void:
-	sm.rpc(serialize_string(message))
+	sm.rpc(Serializer.serialize_string(message))
 
 func _send_message_id(id : int, message : String) -> void:
-	sm.rpc_id(id, serialize_string(message))
+	sm.rpc_id(id, Serializer.serialize_string(message))
 
-func serialize_string(string : String) -> PackedByteArray:
-	var txt : PackedByteArray = string.to_ascii_buffer()
-	var packet : PackedByteArray
-	packet.append(txt.size())
-	txt = txt.compress()
-	packet.append_array(txt)
-	return packet
+@rpc("any_peer", "call_remote", "reliable")
+func su(packet : PackedByteArray) -> void:
+	var login_password : Array[String] = Serializer.deserialize_strings(packet)
+	sign_up.emit(login_password[0], login_password[1])
+
+func _sign_up(login : String, password : String) -> void:
+	su.rpc(Serializer.serialize_strings([login, password]))
+
+@rpc("any_peer", "call_remote", "reliable")
+func si(packet : PackedByteArray) -> void:
+	var login_password : Array[String] = Serializer.deserialize_strings(packet)
+	sign_in.emit(login_password[0], login_password[1])
+
+func _sign_in(login : String, password : String) -> void:
+	si.rpc(Serializer.serialize_strings([login, password]))

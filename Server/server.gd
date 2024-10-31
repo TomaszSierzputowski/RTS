@@ -4,7 +4,6 @@ var client1_id : int = -1
 var client2_id : int = -1
 
 func _ready() -> void:
-	#OS.read_string_from_stdin()
 	multiplayer.peer_connected.connect(self._on_client_connect)
 	multiplayer.peer_disconnected.connect(self._on_client_disconnect)
 	
