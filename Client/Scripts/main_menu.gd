@@ -11,4 +11,4 @@ func _on_connect_button_pressed() -> void:
 	multiplayer.multiplayer_peer = client
 	
 	await multiplayer.connected_to_server
-	Network._send_message("Hello server, it's me client")
+	Net._send_message("Hello server, it's me client")

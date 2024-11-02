@@ -17,7 +17,7 @@ config/icon="res://icon.svg"
 
 [autoload]
 
-Network="*res://Shared/network.gd"
+Net="*res://Shared/network.gd"
 
 [editor]
 
