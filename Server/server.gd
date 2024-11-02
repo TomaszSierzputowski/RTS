@@ -109,9 +109,8 @@ func create_character(start_position, owner_id):
 			"owner_id": owner_id
 		}
 		characters[character_id] = character_data
+		emit_signal("character_created", character_id, owner_id, start_position)  # Emitowanie sygnału utworzenia postaci
 		print("Gracz o ID:",owner_id," stworzyl nowa postac o ID:", character_id," na pozycji:", start_position)
-		
-		#Wysylanie informacji do klienta
 		
 		return character_id
 	else:
@@ -130,8 +129,9 @@ func create_building(start_position, owner_id):
 		}
 		
 		buildings[building_id] = building_data
+		
+		emit_signal("building_created", building_id, owner_id, start_position)  # Emitowanie sygnału utworzenia postaci
 		print("Gracz o ID:",owner_id," stworzyl nowy budynek o ID:", building_id," na pozycji:", start_position)
-		#Wysylanie informacji do klienta
 		
 		return building_id
 	else:
@@ -141,6 +141,8 @@ func create_building(start_position, owner_id):
 func add_resources(player_id: int, resource_type: String, amount: int) -> void:
 	if player_id in player_resoures:
 		player_resoures[player_id][resource_type] += amount
+		var new_amount = player_resoures[player_id][resource_type]
+		emit_signal("resources_changed", player_id, resource_type, new_amount)
 		print("Gracz o ID:",player_id," zwiekszyl zasob:",resource_type," o:",amount, "jego obecny stan:",player_resoures[player_id][resource_type])
 	else:
 		print("Gracz o ID:",player_id, " nie istneje")
@@ -148,6 +150,8 @@ func add_resources(player_id: int, resource_type: String, amount: int) -> void:
 func deduct_resources(player_id: int, resource_type: String, amount: int) -> bool:
 	if player_id in player_resoures and player_resoures[player_id][resource_type] >= amount:
 		player_resoures[player_id][resource_type] -= amount
+		var new_amount = player_resoures[player_id][resource_type]
+		emit_signal("resources_changed", player_id, resource_type, new_amount)
 		print("Gracz o ID:",player_id," pomniejszony zosob:",resource_type," o:",amount," lacznie ma",player_resoures[player_id][resource_type])
 		return true
 	else:
