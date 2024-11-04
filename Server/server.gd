@@ -6,6 +6,8 @@ var udps : Array[PacketPeerUDP]
 var tcp : TCPServer = TCPServer.new()
 var tcps : Array[StreamPeerTLS]
 
+var sessions : Array[Account]
+
 func _ready() -> void:
 	udp.listen(8080)
 	tcp.listen(8080)
@@ -71,6 +73,7 @@ func _process(_delta : float) -> void:
 		while peer.get_available_packet_count() > 0:
 			print("udp: ", peer.get_packet().get_string_from_ascii())
 
+signal signed_up(result : Utils.MessageType)
 var salt_len : int = Utils.salt_len()
 func readTLS(peer : StreamPeerTLS, bytes : int) -> Error:
 	var msgType : int = peer.get_u8()
@@ -94,7 +97,27 @@ func readTLS(peer : StreamPeerTLS, bytes : int) -> Error:
 				if bytes > 3: peer.get_partial_data(bytes - 3)
 				peer.put_u8(Utils.MessageType.ERROR_TO_FEW_BYTES)
 				return ERR_INVALID_DATA
-			peer.put_u8(sign_up(peer.get_string(login_len), peer.get_string(pass_len), peer.get_string(salt_len)))
+			peer.put_u8(create_account(peer.get_string(login_len), peer.get_string(pass_len), peer.get_string(salt_len)))
+		
+		Utils.MessageType.ASK_FOR_SALT:
+			if bytes < 2:
+				peer.put_u8(Utils.MessageType.ERROR_TO_FEW_BYTES)
+				return ERR_INVALID_DATA
+			var login_len : int = peer.get_u8()
+			if bytes < 2 + login_len:
+				if bytes > 2: peer.get_partial_data(bytes - 2)
+				peer.put_u8(Utils.MessageType.ERROR_TO_FEW_BYTES)
+				return ERR_INVALID_DATA
+			var err_salt = get_salt(peer.get_string(login_len))
+			peer.put_u8(err_salt[0])
+			if err_salt[0] != Utils.MessageType.RESPONSE_OK:
+				return ERR_INVALID_DATA
+			var packet : PackedByteArray = [Utils.MessageType.SALT]
+			packet.append(err_salt[1].to_ascii_buffer())
+			peer.put_data(packet)
+		
+		Utils.MessageType.HASHED_PASSWORD:
+			pass
 		
 		Utils.MessageType.JUST_STRING:
 			var msg : String = peer.get_string()
@@ -103,7 +126,10 @@ func readTLS(peer : StreamPeerTLS, bytes : int) -> Error:
 			peer.put_string("Received message: \"" + msg + "\"")
 		
 		Utils.MessageType.ERROR_UNEXISTING_MESSAGE_TYPE:
-			print("Client send back error")
+			print("Client send back error UNEXISTING_MESSAGE_TYPE")
+		
+		Utils.MessageType.ERROR_TO_FEW_BYTES:
+			print("Client send back error TO_FEW_BYTES")
 		
 		_:
 			peer.put_u8(Utils.MessageType.ERROR_UNEXISTING_MESSAGE_TYPE)
@@ -113,14 +139,14 @@ func readTLS(peer : StreamPeerTLS, bytes : int) -> Error:
 	
 	return OK
 
-func sign_up(login : String, password : String, salt : String) -> Utils.MessageType:
+func create_account(login : String, password : String, salt : String) -> Utils.MessageType:
 	var p : float = randf()
 	if p <= 0.2:
 		print("Creating account: login: ", login, ", password: ", password, ", salt: ", salt)
 		return Utils.MessageType.RESPONSE_OK
 	elif p <= 0.4:
 		print("Login already exists")
-		return Utils.MessageType.ERROR_LOGIN_ALREADY_EXISTS
+		return Utils.MessageType.ERROR_LOGIN_ALREADY_IN_DATABASE
 	elif p <= 0.6:
 		print("Invalid login")
 		return Utils.MessageType.ERROR_INVALID_LOGIN
@@ -130,3 +156,12 @@ func sign_up(login : String, password : String, salt : String) -> Utils.MessageT
 	else:
 		print("Invalid salt")
 		return Utils.MessageType.ERROR_INVALID_SALT
+
+func get_salt(login : String) -> Array:
+	var p : float = randf()
+	if p <= 0.4:
+		return [Utils.MessageType.RESPONSE_OK, "placeholder"]
+	elif p <= 0.7:
+		return [Utils.MessageType.ERROR_LOGIN_ALREADY_IN_DATABASE]
+	else:
+		return [Utils.MessageType.ERROR_INVALID_LOGIN]
