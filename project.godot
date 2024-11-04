@@ -19,6 +19,10 @@ config/icon="res://icon.svg"
 
 Network="*res://Shared/network.gd"
 
+[dotnet]
+
+project/assembly_name="RTS"
+
 [editor]
 
 version_control/plugin_name="GitPlugin"

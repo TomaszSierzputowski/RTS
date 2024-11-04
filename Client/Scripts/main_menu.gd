@@ -12,3 +12,6 @@ func _on_connect_button_pressed() -> void:
 	
 	await multiplayer.connected_to_server
 	Network._send_message("Hello server, it's me client")
+	
+	# var login_screen = load("res://Client/Scenes/login_menu.tscn").instantiate()
+	# add_child(login_screen)
