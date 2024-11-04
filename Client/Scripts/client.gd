@@ -1,5 +1,4 @@
 extends Node
-class_name Client
 
 #Reading from server
 func _process(_delta: float) -> void:
@@ -12,15 +11,35 @@ func _process(_delta: float) -> void:
 		readTLS()
 
 func readTLS() -> Error:
-	var msgType : Utils.MessageType = tls.get_u8()
+	var msgType : int = tls.get_u8()
 	match msgType:
 		Utils.MessageType.JUST_STRING:
 			var msg : String = tls.get_string()
 			print("tls: ", msg)
+		
+		Utils.MessageType.ERROR_TO_FEW_BYTES:
+			print("Server send back error TO_FEW_BYTES")
+		
+		Utils.MessageType.ERROR_UNEXISTING_MESSAGE_TYPE:
+			print("Server send back error UNEXISTING_MESSAGE_TYPE")
+		
 		_:
-			tls.put_u8(Utils.MessageType.RESPONSE_ERROR)
+			tls.put_u8(Utils.MessageType.ERROR_UNEXISTING_MESSAGE_TYPE)
+			print("MessageType not exists")
 			return ERR_BUG
+	
 	return OK
+
+func send_test() -> void:
+	var packet : PackedByteArray
+	packet.resize(10)
+	packet.encode_u8(0, Utils.MessageType.TEST_BYTE_BY_BYTE)
+	packet.encode_u32(1, "Hello".length())
+	var i := 4
+	for c in "Hello".to_ascii_buffer():
+		i += 1
+		packet.encode_u8(i, c)
+	tls.put_data(packet)
 
 #Sending messages
 func send_message(msg : String) -> Error:
@@ -34,10 +53,27 @@ func send_message(msg : String) -> Error:
 		return ERR_CONNECTION_ERROR
 	return OK
 
-func sign_up(login : String, password : String) -> void:
-	tls.put_u8(Utils.MessageType.SIGN_UP)
-	tls.put_string(login)
-	tls.put_string(password)
+var salt_len : int = Utils.salt_len()
+func sign_up(login : String, password : String, salt : String = "placeholder") -> int:
+	var packet : PackedByteArray
+	var login_len : int = login.length()
+	var pass_len : int = password.length()
+	packet.resize(3 + login_len + pass_len + salt_len)
+	packet.encode_u8(0, Utils.MessageType.SIGN_UP)
+	packet.encode_u8(1, login_len)
+	packet.encode_u8(2, pass_len)
+	var i : int = 2
+	for c in login.to_ascii_buffer():
+		i += 1
+		packet.encode_u8(i, c)
+	for c in password.to_ascii_buffer():
+		i += 1
+		packet.encode_u8(i, c)
+	for c in salt.to_ascii_buffer():
+		i += 1
+		packet.encode_u8(i, c)
+	tls.put_data(packet)
+	return await tls.get_u8()
 
 #Connecting TLS
 var tcp : StreamPeerTCP
