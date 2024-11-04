@@ -1,0 +1,15 @@
+extends Object
+class_name Utils
+
+enum MessageType {
+	RESPONSE_OK = 0x01,
+	RESPONSE_ERROR = 0x02,
+	JUST_STRING = 0x0a,
+	SIGN_UP = 0x10,
+	ERROR_INVALID_LOGIN = 0x1f,
+	ERROR_INVALID_HASHED_PASSWORD = 0x1e,
+	ERROR_INVALID_SALT = 0x1d,
+	ASK_FOR_SALT = 0x11,
+	SALT = 0x12,
+	HASHED_PASSWORD = 0x13
+}

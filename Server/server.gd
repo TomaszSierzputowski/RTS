@@ -5,15 +5,10 @@ var udps : Array[PacketPeerUDP]
 
 var tcp : TCPServer = TCPServer.new()
 var tcps : Array[StreamPeerTLS]
-#var cfg : TLSOptions
 
 func _ready() -> void:
 	udp.listen(8080)
 	tcp.listen(8080)
-	#var key : CryptoKey = load("res://Server/key.key")
-	#var cert : X509Certificate = load("res://Shared/cert.crt")
-	#cfg = TLSOptions.server(key, cert)
-	#dtls.setup(cfg)
 	print("server is listening on port 8080")
 
 func _process(_delta : float) -> void:
@@ -50,8 +45,8 @@ func _process(_delta : float) -> void:
 			print("TLS Connection error status: ", tls.get_status())
 		
 		tcps.append(tls)
-		print("tls peer connected")
-		
+		print("TLS connected")
+	
 	for peer in tcps:
 		peer.poll()
 		var status : StreamPeerTLS.Status = peer.get_status()
@@ -61,27 +56,28 @@ func _process(_delta : float) -> void:
 			tcps.erase(peer)
 			continue
 		while peer.get_available_bytes() > 0:
-			print("tcp: ", peer.get_string(), ", ")
-
-func tmp():
-	#for peer in tcps:
-	for peer in []:
-		peer.poll()
-		var status : StreamPeerTCP.Status = peer.get_status()
-		if status == StreamPeerTCP.STATUS_CONNECTING:
-			continue
-		if status == StreamPeerTCP.STATUS_NONE or status == StreamPeerTCP.STATUS_ERROR:
-			tcps.erase(peer)
-			continue
-		while peer.get_available_bytes() > 0:
-			print("tcp: ", peer.get_string(), ", ", peer.get_connected_host())
+			readTLS(peer)
 	
 	udp.poll()
 	while udp.is_connection_available():
 		var peer: PacketPeerUDP = udp.take_connection()
 		udps.append(peer)
-		print("udp peer connected")
+		print("UDP connected")
 	
 	for peer in udps:
 		while peer.get_available_packet_count() > 0:
-			print("udp: ", peer.get_packet().get_string_from_ascii(), ", ", peer.get_packet_ip())
+			print("udp: ", peer.get_packet().get_string_from_ascii())
+
+func readTLS(peer : StreamPeerTLS) -> Error:
+	var msgType : Utils.MessageType = peer.get_u8()
+	match msgType:
+		Utils.MessageType.JUST_STRING:
+			var msg : String = peer.get_string()
+			print("tls: ", msg)
+			peer.put_u8(Utils.MessageType.JUST_STRING)
+			peer.put_string("Received message: \"" + msg + "\"")
+		_:
+			peer.put_u8(Utils.MessageType.RESPONSE_ERROR)
+			return ERR_BUG
+	return OK
+	

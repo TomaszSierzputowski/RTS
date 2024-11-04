@@ -15,6 +15,10 @@ run/main_scene="res://Shared/base_scene.tscn"
 config/features=PackedStringArray("4.3", "Forward Plus")
 config/icon="res://icon.svg"
 
+[autoload]
+
+Server="*res://Client/Scripts/client.gd"
+
 [editor]
 
 version_control/plugin_name="GitPlugin"
@@ -26,4 +30,4 @@ enabled=PackedStringArray("res://addons/godot-sqlite/plugin.cfg", "res://addons/
 
 [network]
 
-tls/certificate_bundle_override="res://Shared/cert.crt"
+tls/certificate_bundle_override="res://private/main.crt"
