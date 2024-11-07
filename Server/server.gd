@@ -1,10 +1,10 @@
 extends Node
 
 var udp : UDPServer = UDPServer.new()
-const udp_port : int = 8080
+const udp_port : int = 4443
 
 var tcp : TCPServer = TCPServer.new()
-const tcp_port : int = 8080
+const tcp_port : int = 4443
 
 var sessions : Array[Account]
 var waiting_for_authorization : Array[Account]
@@ -12,9 +12,9 @@ var authorisation_failed : Array[Account]
 #var waiting_for_second_player : GameRoom
 
 func _ready() -> void:
-	udp.listen(3657)
-	tcp.listen(443)
-	print("server is listening on port 443")
+	tcp.listen(tcp_port)
+	udp.listen(udp_port)
+	print("server is listening on port ", tcp_port)
 	randomize()
 
 func _process(_delta : float) -> void:
