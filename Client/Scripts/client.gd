@@ -1,21 +1,34 @@
 extends Node
 
+func _ready() -> void:
+	set_waiting_timer.call_deferred()
+
 #Reading from server
 func _process(_delta: float) -> void:
 	if not connected:
 		return
-	tls.poll() 
-	if tls.get_status() != StreamPeerTLS.STATUS_CONNECTED:
-		return
-	if waiting_for_response:
-		return
+	tls.poll()
+	var status : StreamPeerTLS.Status = tls.get_status()
+	match status:
+		StreamPeerTLS.Status.STATUS_DISCONNECTED, StreamPeerTLS.Status.STATUS_ERROR, StreamPeerTLS.Status.STATUS_ERROR_HOSTNAME_MISMATCH:
+			connected = false
+			return
+		StreamPeerTLS.Status.STATUS_HANDSHAKING:
+			return
 	var bytes : int = tls.get_available_bytes()
 	while bytes > 0:
 		readTLS(bytes)
 		bytes = tls.get_available_bytes()
+	if not in_game:
+		return
+	while udp.get_available_packet_count() > 0:
+		readUDP()
 
 func readTLS(bytes : int) -> Error:
 	var msgType : int = tls.get_u8()
+	if waiting_for_response:
+		response_received.emit(msgType)
+		return OK
 	match msgType:
 		Utils.MessageType.JUST_STRING:
 			var msg : String = tls.get_string()
@@ -32,11 +45,22 @@ func readTLS(bytes : int) -> Error:
 				if bytes > 1: tls.get_partial_data(bytes - 1)
 				tls.put_u8(Utils.MessageType.ERROR_UNEXPECTED_SALT)
 				return ERR_DOES_NOT_EXIST
-			if bytes < 1 + salt_len:
+			if bytes < 1 + Utils.salt_len:
 				if bytes > 1: tls.get_partial_data(bytes - 1)
 				tls.put_u8(Utils.MessageType.ERROR_TO_FEW_BYTES)
 				return ERR_INVALID_DATA
-			continue_signing.emit(tls.get_string(salt_len))
+			continue_signing.emit(tls.get_string(Utils.salt_len)) #get_data
+		
+		Utils.MessageType.TOKEN_AND_KEY:
+			if not waiting_for_token_and_key:
+				if bytes > 1: tls.get_partial_data(bytes - 1)
+				tls.put_u8(Utils.MessageType.ERROR_UNEXPECTED_TOKEN_AND_KEY)
+				return ERR_DOES_NOT_EXIST
+			if bytes < 1 + Utils.token_len + Utils.key_len:
+				if bytes > 1: tls.get_partial_data(bytes - 1)
+				tls.put_u8(Utils.MessageType.ERROR_TO_FEW_BYTES)
+				return ERR_INVALID_DATA
+			token_and_key.emit(tls.get_data(Utils.token_len), tls.get_data(Utils.key_len))
 		
 		_:
 			tls.put_u8(Utils.MessageType.ERROR_UNEXISTING_MESSAGE_TYPE)
@@ -45,22 +69,34 @@ func readTLS(bytes : int) -> Error:
 	
 	return OK
 
+func readUDP() -> Error:
+	return OK
+
+#Waiting for responses
+var timer : Timer
+func set_waiting_timer():
+	timer = Timer.new()
+	add_child(timer)
+	timer.one_shot = true
+	timer.wait_time = 1.0
+	timer.timeout.connect(timeout)
+func timeout() -> void:
+	response_received.emit(Utils.MessageType.ERROR_TIMEOUT)
 var waiting_for_response : bool = false
+signal response_received(type : Utils.MessageType)
 func wait_for_response() -> Utils.MessageType:
 	waiting_for_response = true
-	var response = await tls.get_u8()
+	timer.start()
+	var response : Utils.MessageType = await response_received
+	timer.stop()
 	waiting_for_response = false
 	return response
 
+#Testing
 func send_test() -> void:
 	var packet : PackedByteArray
-	packet.resize(10)
+	packet.resize(1)
 	packet.encode_u8(0, Utils.MessageType.TEST_BYTE_BY_BYTE)
-	packet.encode_u32(1, "Hello".length())
-	var i := 4
-	for c in "Hello".to_ascii_buffer():
-		i += 1
-		packet.encode_u8(i, c)
 	tls.put_data(packet)
 
 #Sending messages
@@ -75,12 +111,12 @@ func send_message(msg : String) -> Error:
 		return ERR_CONNECTION_ERROR
 	return OK
 
-var salt_len : int = Utils.salt_len()
-func sign_up(login : String, password : String, salt : String = "placeholder") -> int:
+#Signing up and in
+func sign_up(login : String, password : String, salt : String = "placeholder") -> Utils.MessageType:
 	var packet : PackedByteArray
 	var login_len : int = login.length()
 	var pass_len : int = password.length()
-	packet.resize(3 + login_len + pass_len + salt_len)
+	packet.resize(3 + login_len + pass_len + Utils.salt_len)
 	packet.encode_u8(0, Utils.MessageType.SIGN_UP)
 	packet.encode_u8(1, login_len)
 	packet.encode_u8(2, pass_len)
@@ -92,7 +128,7 @@ func sign_up(login : String, password : String, salt : String = "placeholder") -
 	return await wait_for_response()
 
 signal continue_signing(salt : String)
-var waiting_for_salt : bool = false
+var waiting_for_salt : = false
 func sign_in(login : String, password : String) -> Utils.MessageType:
 	var packet : PackedByteArray
 	var login_len : int = login.length()
@@ -116,11 +152,59 @@ func sign_in(login : String, password : String) -> Utils.MessageType:
 	tls.put_data(packet)
 	return await wait_for_response()
 
+#Preparing game
+signal token_and_key(token : PackedByteArray, key : PackedByteArray)
+var waiting_for_token_and_key := false
+var token : PackedByteArray
+var key : PackedByteArray
+
+func play() -> Utils.MessageType:
+	tls.put_u8(Utils.MessageType.PREPARE_GAME)
+	var response = await wait_for_response()
+	if response != Utils.MessageType.RESPONSE_OK:
+		return response
+	waiting_for_token_and_key = true
+	var token_key = await token_and_key
+	waiting_for_token_and_key = false
+	token = token_key[0]
+	key = token_key[1]
+	response = await connect_to_game()
+	if response != Utils.MessageType.RESPONSE_OK:
+		return response
+	
+	#TBC chyba
+	
+	return Utils.MessageType.RESPONSE_OK
+
+#Connecting UDP
+var udp : PacketPeerUDP
+var in_game := false
+func connect_to_game() -> Utils.MessageType:
+	udp = PacketPeerUDP.new()
+	var err = udp.connect_to_host(udp_host, udp_port)
+	if err != OK:
+		return Utils.MessageType.ERROR_CONNECTION_ERROR
+	var response = Utils.MessageType.ERROR_TIMEOUT
+	while response == Utils.MessageType.ERROR_TIMEOUT:
+		udp.put_packet(Utils.crypto.hmac_digest(Utils.hash_type, key, token))
+		response = await wait_for_response()
+	return response
+	
+	#TBC chyba
+
 #Connecting TLS
 var tcp : StreamPeerTCP
 var tls : StreamPeerTLS
+var tls_host : String
+var tls_port : int
+var udp_host : String
+var udp_port : int
 var connected := false
-func connect_to_server(host : String, port : int) -> Error:
+func connect_to_server(_tls_host : String, _tls_port : int, _udp_host : String, _udp_port : int) -> Error:
+	tls_host = _tls_host
+	tls_port = _tls_port
+	udp_host = _udp_host
+	udp_port = _udp_port
 	if tls != null and (tls.get_status() == StreamPeerTLS.STATUS_HANDSHAKING or tls.get_status() == StreamPeerTLS.STATUS_CONNECTED):
 		print("Client already connected to server")
 		return ERR_ALREADY_EXISTS
@@ -131,7 +215,7 @@ func connect_to_server(host : String, port : int) -> Error:
 			tcp.disconnect_from_host()
 		tcp = null
 	tcp = StreamPeerTCP.new()
-	var tcp_connect_err := tcp.connect_to_host(host, port)
+	var tcp_connect_err := tcp.connect_to_host(tls_host, tls_port)
 	if tcp_connect_err != OK:
 		print("Failed to connect")
 		return tcp_connect_err

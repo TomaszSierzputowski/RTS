@@ -1,17 +1,20 @@
 extends Node
 
 var udp : UDPServer = UDPServer.new()
-var udps : Array[PacketPeerUDP]
+const udp_port : int = 8080
 
 var tcp : TCPServer = TCPServer.new()
-var tcps : Array[StreamPeerTLS]
+const tcp_port : int = 8080
 
 var sessions : Array[Account]
+var waiting_for_authorization : Array[Account]
+var authorisation_failed : Array[Account]
+#var waiting_for_second_player : GameRoom
 
 func _ready() -> void:
-	udp.listen(8080)
-	tcp.listen(8080)
-	print("server is listening on port 8080")
+	udp.listen(3657)
+	tcp.listen(443)
+	print("server is listening on port 443")
 	randomize()
 
 func _process(_delta : float) -> void:
@@ -47,44 +50,54 @@ func _process(_delta : float) -> void:
 		if tls.get_status() != StreamPeerTLS.Status.STATUS_CONNECTED:
 			print("TLS Connection error status: ", tls.get_status())
 		
-		tcps.append(tls)
+		sessions.append(Account.new(tls))
 		print("TLS connected")
 	
-	for peer in tcps:
+	for session in sessions:
+		var peer := session.tls
 		peer.poll()
 		var status : StreamPeerTLS.Status = peer.get_status()
 		if status == StreamPeerTLS.Status.STATUS_HANDSHAKING:
 			continue
 		if status == StreamPeerTLS.STATUS_DISCONNECTED or status == StreamPeerTLS.STATUS_ERROR:
-			tcps.erase(peer)
+			sessions.erase(session)
 			continue
 		var bytes : int = peer.get_available_bytes()
 		while bytes > 0:
-			readTLS(peer, bytes)
+			readTLS(session, bytes)
 			bytes = peer.get_available_bytes()
 	
 	udp.poll()
 	while udp.is_connection_available():
-		var peer: PacketPeerUDP = udp.take_connection()
-		udps.append(peer)
-		print("UDP connected")
+		var peer : PacketPeerUDP = udp.take_connection()
+		var packet : PackedByteArray = peer.get_packet()
+		for session in waiting_for_authorization:
+			if session.host == peer.get_packet_ip() and session.port == peer.get_packet_port():
+				session.udp = peer
+				waiting_for_authorization.erase(session)
+				if session.hmac_authorisation == packet:
+					session.tls.put_u8(Utils.MessageType.RESPONSE_OK)
+				else:
+					session.tls.put_u8(Utils.MessageType.ERROR_CANNOT_AUTHORISE_UDP)
+					authorisation_failed.append(session)
 	
-	for peer in udps:
-		while peer.get_available_packet_count() > 0:
-			print("udp: ", peer.get_packet().get_string_from_ascii())
+	for session in authorisation_failed:
+		if session.udp.get_available_packet_count() > 0:
+			var packet : PackedByteArray = session.udp.get_packet()
+			if session.hmac_authorisation == packet:
+				session.tls.put_u8(Utils.MessageType.RESPONSE_OK)
+				authorisation_failed.erase(session)
+			else:
+				session.tls.put_u8(Utils.MessageType.ERROR_CANNOT_AUTHORISE_UDP)
 
 signal signed_up(result : Utils.MessageType)
-var salt_len : int = Utils.salt_len()
-func readTLS(peer : StreamPeerTLS, bytes : int) -> Error:
+func readTLS(session : Account, bytes : int) -> Error:
+	var peer := session.tls
 	var msgType : int = peer.get_u8()
 	match msgType:
 		Utils.MessageType.TEST_BYTE_BY_BYTE:
-			print("byte by byte")
-			var err_pac = peer.get_partial_data(15)
-			var err : Error = err_pac[0]
-			var packet : PackedByteArray = err_pac[1]
-			print(packet.size())
-			print(packet)
+			print("test")
+			print(peer.get_string(0))
 		
 		Utils.MessageType.SIGN_UP:
 			if bytes < 3:
@@ -93,11 +106,11 @@ func readTLS(peer : StreamPeerTLS, bytes : int) -> Error:
 				return ERR_INVALID_DATA
 			var login_len : int = peer.get_u8()
 			var pass_len : int = peer.get_u8()
-			if bytes < 3 + login_len + pass_len + salt_len:
+			if bytes < 3 + login_len + pass_len + Utils.salt_len:
 				if bytes > 3: peer.get_partial_data(bytes - 3)
 				peer.put_u8(Utils.MessageType.ERROR_TO_FEW_BYTES)
 				return ERR_INVALID_DATA
-			peer.put_u8(create_account(peer.get_string(login_len), peer.get_string(pass_len), peer.get_string(salt_len)))
+			peer.put_u8(create_account(peer.get_string(login_len), peer.get_string(pass_len), peer.get_string(Utils.salt_len)))
 		
 		Utils.MessageType.ASK_FOR_SALT:
 			if bytes < 2:
@@ -108,16 +121,34 @@ func readTLS(peer : StreamPeerTLS, bytes : int) -> Error:
 				if bytes > 2: peer.get_partial_data(bytes - 2)
 				peer.put_u8(Utils.MessageType.ERROR_TO_FEW_BYTES)
 				return ERR_INVALID_DATA
-			var err_salt = get_salt(peer.get_string(login_len))
-			peer.put_u8(err_salt[0])
-			if err_salt[0] != Utils.MessageType.RESPONSE_OK:
+			var login = peer.get_string(login_len)
+			var err_info = get_account_info(login)
+			peer.put_u8(err_info[0])
+			if err_info[0] != Utils.MessageType.RESPONSE_OK:
 				return ERR_INVALID_DATA
+			session.login = login
 			var packet : PackedByteArray = [Utils.MessageType.SALT]
-			packet.append(err_salt[1].to_ascii_buffer())
+			packet.append_array(err_info[3].to_ascii_buffer())
 			peer.put_data(packet)
+			session.id = err_info[1]
+			session.password = err_info[2]
 		
 		Utils.MessageType.HASHED_PASSWORD:
-			pass
+			if bytes < 2:
+				peer.put_u8(Utils.MessageType.ERROR_TO_FEW_BYTES)
+				return ERR_INVALID_DATA
+			var pass_len : int = peer.get_u8()
+			if bytes < 2 + pass_len:
+				if bytes > 2: peer.get_partial_data(bytes - 2)
+				peer.put_u8(Utils.MessageType.ERROR_TO_FEW_BYTES)
+				return ERR_INVALID_DATA
+			var password = peer.get_string(pass_len)
+			if session.password != password:
+				print("Invalid password")
+				peer.put_u8(Utils.MessageType.ERROR_INVALID_HASHED_PASSWORD)
+				return ERR_INVALID_DATA
+			print("Successfully logged in")
+			peer.put_u8(Utils.MessageType.RESPONSE_OK)
 		
 		Utils.MessageType.JUST_STRING:
 			var msg : String = peer.get_string()
@@ -145,7 +176,7 @@ func create_account(login : String, password : String, salt : String) -> Utils.M
 		print("Creating account: login: ", login, ", password: ", password, ", salt: ", salt)
 		return Utils.MessageType.RESPONSE_OK
 	elif p <= 0.4:
-		print("Login already exists")
+		print("Login already in database")
 		return Utils.MessageType.ERROR_LOGIN_ALREADY_IN_DATABASE
 	elif p <= 0.6:
 		print("Invalid login")
@@ -157,11 +188,14 @@ func create_account(login : String, password : String, salt : String) -> Utils.M
 		print("Invalid salt")
 		return Utils.MessageType.ERROR_INVALID_SALT
 
-func get_salt(login : String) -> Array:
+func get_account_info(login : String) -> Array:
 	var p : float = randf()
 	if p <= 0.4:
-		return [Utils.MessageType.RESPONSE_OK, "placeholder"]
+		return [Utils.MessageType.RESPONSE_OK, 1, "password", "placeholder"]
+		#[OK, id, hashed_password, salt]
 	elif p <= 0.7:
-		return [Utils.MessageType.ERROR_LOGIN_ALREADY_IN_DATABASE]
+		print("Login not in database")
+		return [Utils.MessageType.ERROR_LOGIN_NOT_IN_DATABASE]
 	else:
+		print("Invalid login")
 		return [Utils.MessageType.ERROR_INVALID_LOGIN]
