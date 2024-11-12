@@ -10,7 +10,9 @@ func _process(_delta: float) -> void:
 	tls.poll()
 	var status : StreamPeerTLS.Status = tls.get_status()
 	match status:
-		StreamPeerTLS.Status.STATUS_DISCONNECTED, StreamPeerTLS.Status.STATUS_ERROR, StreamPeerTLS.Status.STATUS_ERROR_HOSTNAME_MISMATCH:
+		StreamPeerTLS.Status.STATUS_DISCONNECTED,\
+		StreamPeerTLS.Status.STATUS_ERROR,\
+		StreamPeerTLS.Status.STATUS_ERROR_HOSTNAME_MISMATCH:
 			connected = false
 			return
 		StreamPeerTLS.Status.STATUS_HANDSHAKING:
@@ -60,7 +62,7 @@ func readTLS(bytes : int) -> Error:
 				if bytes > 1: tls.get_partial_data(bytes - 1)
 				tls.put_u8(Utils.MessageType.ERROR_TO_FEW_BYTES)
 				return ERR_INVALID_DATA
-			token_and_key.emit(tls.get_data(Utils.token_len), tls.get_data(Utils.key_len))
+			token_and_key.emit(tls.get_data(Utils.token_len)[1], tls.get_data(Utils.key_len)[1])
 		
 		_:
 			tls.put_u8(Utils.MessageType.ERROR_UNEXISTING_MESSAGE_TYPE)
@@ -158,16 +160,12 @@ var waiting_for_token_and_key := false
 var token : PackedByteArray
 var key : PackedByteArray
 
+var in_game := false
 func play() -> Utils.MessageType:
 	tls.put_u8(Utils.MessageType.PREPARE_GAME)
 	var response = await wait_for_response()
 	if response != Utils.MessageType.RESPONSE_OK:
 		return response
-	waiting_for_token_and_key = true
-	var token_key = await token_and_key
-	waiting_for_token_and_key = false
-	token = token_key[0]
-	key = token_key[1]
 	response = await connect_to_game()
 	if response != Utils.MessageType.RESPONSE_OK:
 		return response
@@ -177,8 +175,6 @@ func play() -> Utils.MessageType:
 	return Utils.MessageType.RESPONSE_OK
 
 #Connecting UDP
-var udp : PacketPeerUDP
-var in_game := false
 func connect_to_game() -> Utils.MessageType:
 	udp = PacketPeerUDP.new()
 	var err = udp.connect_to_host(udp_host, udp_port)
@@ -189,12 +185,11 @@ func connect_to_game() -> Utils.MessageType:
 		udp.put_packet(Utils.crypto.hmac_digest(Utils.hash_type, key, token))
 		response = await wait_for_response()
 	return response
-	
-	#TBC chyba
 
-#Connecting TLS
+#Connecting TCP, TLS and UDP
 var tcp : StreamPeerTCP
 var tls : StreamPeerTLS
+var udp : PacketPeerUDP
 var tls_host : String
 var tls_port : int
 var udp_host : String
@@ -231,6 +226,7 @@ func connect_to_server(_tls_host : String, _tls_port : int, _udp_host : String, 
 		return ERR_CONNECTION_ERROR
 	
 	print("TCP connected")
+	tcp.put_u8(Utils.MessageType.RESPONSE_OK)
 	
 	var tls_connect_err : Error = tls.connect_to_stream(tcp, "localhost", TLSOptions.client_unsafe(load("res://Shared/cert.crt")))
 	if tls_connect_err != OK:
@@ -243,9 +239,30 @@ func connect_to_server(_tls_host : String, _tls_port : int, _udp_host : String, 
 		print("TLS Connection error status: ", tls.get_status())
 		return ERR_CONNECTION_ERROR
 	
+	connected = true
+	
 	print("TLS connected")
 	
-	connected = true
+	udp = PacketPeerUDP.new()
+	var err = udp.connect_to_host(udp_host, udp_port)
+	
+	tls.put_u16(udp.get_local_port())
+	
+	waiting_for_token_and_key = true
+	var token_key = await token_and_key
+	waiting_for_token_and_key = false
+	token = token_key[0]
+	key = token_key[1]
+	if err != OK:
+		return ERR_CONNECTION_ERROR
+	var response = Utils.MessageType.ERROR_TIMEOUT
+	while response == Utils.MessageType.ERROR_TIMEOUT:
+		udp.put_packet(Utils.crypto.hmac_digest(Utils.hash_type, key, token))
+		response = await wait_for_response()
+	if response == Utils.MessageType.ERROR_CANNOT_AUTHORISE_UDP:
+		return ERR_UNAUTHORIZED
+	
+	print("UDP connected")
 	
 	return OK
 
