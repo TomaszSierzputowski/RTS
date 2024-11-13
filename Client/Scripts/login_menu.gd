@@ -1,8 +1,8 @@
 extends Node2D
 
 # Sygnały do logowania i rejestracji
-signal login_attempt(username, password)
-signal register_attempt(username, password)
+signal login_attempt(username, password) # await Client.sign_in(username, password)
+signal register_attempt(username, password) # var err =  await Client.sign_in(-||-); if err == Utils.MessageType.RESPONSE_OK:
 
 # Referencje do pól tekstowych i przycisków
 @onready var username_field = $VBoxContainer2/username_field

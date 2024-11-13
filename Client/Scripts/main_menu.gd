@@ -15,13 +15,16 @@ func _on_connect_button_pressed() -> void:
 	if Client.connected:
 		Client.play()
 	else:
+		var conn_err : Error
 		match mode:
 			0:
-				await Client.connect_to_server("127.0.0.1", 4443, "127.0.0.1", 4443)
+				conn_err = await Client.connect_to_server("127.0.0.1", 4443, "127.0.0.1", 4443)
 			1:
-				await Client.connect_to_server("aptuymn.localto.net", tunnel_input.text.to_int(), "aptuymn.localto.net", tunnel_input.text.to_int())
+				conn_err = await Client.connect_to_server("aptuymn.localto.net", tunnel_input.text.to_int(), "aptuymn.localto.net", tunnel_input.text.to_int())
 			2:
-				await Client.connect_to_server(tls_host_input.text, tls_port_input.text.to_int(), udp_host_input.text, udp_port_input.text.to_int())
+				conn_err = await Client.connect_to_server(tls_host_input.text, tls_port_input.text.to_int(), udp_host_input.text, udp_port_input.text.to_int())
+		if conn_err == OK:
+			get_tree().change_scene_to_file("res://Client/Scenes/login_menu.tscn")
 
 func _on_mode_selected(_mode : int):
 	mode = _mode
