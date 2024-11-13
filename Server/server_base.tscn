@@ -4,3 +4,5 @@
 
 [node name="ServerBase" type="Node"]
 script = ExtResource("1_5bcm7")
+
+[node name="Timer" type="Timer" parent="."]
