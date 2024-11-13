@@ -17,7 +17,11 @@ config/icon="res://icon.svg"
 
 [autoload]
 
-Network="*res://Shared/network.gd"
+Client="*res://Client/Scripts/client.gd"
+
+[dotnet]
+
+project/assembly_name="RTS"
 
 [editor]
 
