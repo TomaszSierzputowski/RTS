@@ -80,7 +80,6 @@ func set_waiting_timer():
 	timer = Timer.new()
 	add_child(timer)
 	timer.one_shot = true
-	timer.wait_time = 1.0
 	timer.timeout.connect(timeout)
 func timeout() -> void:
 	response_received.emit(Utils.MessageType.ERROR_TIMEOUT)
@@ -88,7 +87,7 @@ var waiting_for_response : bool = false
 signal response_received(type : Utils.MessageType)
 func wait_for_response() -> Utils.MessageType:
 	waiting_for_response = true
-	timer.start()
+	timer.start(1.0)
 	var response : Utils.MessageType = await response_received
 	timer.stop()
 	waiting_for_response = false
