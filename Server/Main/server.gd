@@ -79,7 +79,7 @@ func connect_new_session() -> Error:
 	var tls : StreamPeerTLS = StreamPeerTLS.new()
 	var tls_err : Error
 	
-	tls_err = tls.accept_stream(peer, TLSOptions.server(load("res://Server/key.key"), load("res://Shared/cert.crt")))
+	tls_err = tls.accept_stream(peer, TLSOptions.server(load("res://Server/Main/key.key"), load("res://Shared/cert.crt")))
 	
 	if tls_err != OK:
 		print("TLS accept error: ", tls_err)
