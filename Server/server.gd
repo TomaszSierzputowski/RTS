@@ -15,6 +15,8 @@ func _ready() -> void:
 		printerr("Something went wrong, unable to cerate a server")
 		get_tree().quit()
 	multiplayer.multiplayer_peer = server
+	
+	
 
 func _on_client_connect(clientID : int) -> void:
 	if client1_id == -1:
@@ -27,9 +29,10 @@ func _on_client_connect(clientID : int) -> void:
 		Network._send_message_id(client1_id, "Second player connected, id: " + str(client2_id))
 	print("Client connected, id: " + str(clientID))
 
-func _on_client_disconnect(clientID : int) -> void:
+func _on_client_disconnect(clientID : int) ->void:
 	if client1_id == clientID:
 		client1_id = -1
 	else:
 		client2_id = -1
 	print("Client disconnected, id: " + str(clientID))
+	
