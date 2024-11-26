@@ -25,6 +25,7 @@ func _process(_delta: float) -> void:
 		return
 	while udp.get_available_packet_count() > 0:
 		readUDP()
+	writeUDP()
 
 func readTLS(bytes : int) -> Error:
 	var msgType : int = tls.get_u8()
@@ -64,6 +65,12 @@ func readTLS(bytes : int) -> Error:
 				return ERR_INVALID_DATA
 			token_and_key.emit(tls.get_data(Utils.token_len)[1], tls.get_data(Utils.key_len)[1])
 		
+		Utils.MessageType.GAME_STARTED:
+			waiting_for_opponent.emit(false)
+		
+		Utils.MessageType.GAME_CANCELED:
+			waiting_for_opponent.emit(true)
+		
 		_:
 			tls.put_u8(Utils.MessageType.ERROR_UNEXISTING_MESSAGE_TYPE)
 			print("MessageType not exists")
@@ -72,7 +79,38 @@ func readTLS(bytes : int) -> Error:
 	return OK
 
 func readUDP() -> Error:
+	var packet := udp.get_packet()
+	var msgType := packet.decode_u8(0) as Utils.MessageType
+	match msgType:
+		Utils.MessageType.BOARD_STATE:
+			pass
+		
+		Utils.MessageType.ERROR_INVALID_HMAC_ERROR:
+			pass
+		
+		Utils.MessageType.ERROR_CANNOT_BUILD:
+			pass
+		
+		Utils.MessageType.ERROR_CANNOT_SUMMON:
+			pass
+		
+		Utils.MessageType.ERROR_CANNOT_MOVE:
+			pass
+		
+		Utils.MessageType.ERROR_CANNOT_ATTACK:
+			pass
+		
+		_:
+			pass
+	
 	return OK
+
+var packets_to_send : Array[PackedByteArray]
+var no_packets : int = 0
+var server_received : PackedByteArray
+func writeUDP() -> void:
+	for i in range(no_packets):
+		pass
 
 #Waiting for responses
 var timer : Timer
@@ -153,37 +191,28 @@ func sign_in(login : String, password : String) -> Utils.MessageType:
 	tls.put_data(packet)
 	return await wait_for_response()
 
-#Preparing game
-signal token_and_key(token : PackedByteArray, key : PackedByteArray)
-var waiting_for_token_and_key := false
-var token : PackedByteArray
-var key : PackedByteArray
-
 var in_game := false
+signal waiting_for_opponent(canceled : bool)
 func play() -> Utils.MessageType:
 	tls.put_u8(Utils.MessageType.PREPARE_GAME)
 	var response = await wait_for_response()
 	if response != Utils.MessageType.RESPONSE_OK:
 		return response
-	response = await connect_to_game()
-	if response != Utils.MessageType.RESPONSE_OK:
-		return response
+	if await waiting_for_opponent:
+		tls.put_u8(Utils.MessageType.GAME_CANCELED)
+		return Utils.MessageType.GAME_CANCELED
 	
-	#TBC chyba
-	
+	in_game = true
 	return Utils.MessageType.RESPONSE_OK
 
-#Connecting UDP
-func connect_to_game() -> Utils.MessageType:
-	udp = PacketPeerUDP.new()
-	var err = udp.connect_to_host(udp_host, udp_port)
-	if err != OK:
-		return Utils.MessageType.ERROR_CONNECTION_ERROR
-	var response = Utils.MessageType.ERROR_TIMEOUT
-	while response == Utils.MessageType.ERROR_TIMEOUT:
-		udp.put_packet(Utils.crypto.hmac_digest(Utils.hash_type, key, token))
-		response = await wait_for_response()
-	return response
+func cancel_play() -> void:
+	waiting_for_opponent.emit(true)
+
+#Preparing game
+signal token_and_key(token : PackedByteArray, key : PackedByteArray)
+var waiting_for_token_and_key := false
+var token : PackedByteArray
+var key : PackedByteArray
 
 #Connecting TCP, TLS and UDP
 var tcp : StreamPeerTCP
