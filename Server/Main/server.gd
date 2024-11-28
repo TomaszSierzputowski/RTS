@@ -95,6 +95,7 @@ func connect_new_session() -> Error:
 	if no_sessions == max_no_players:
 		peer.put_u8(Utils.MessageType.NO_MORE_FREE_SEATS)
 		return ERR_OUT_OF_MEMORY
+	
 	peer.put_u8(Utils.MessageType.RESPONSE_OK)
 	
 	print("TCP connected")
@@ -173,7 +174,7 @@ func readTLS(session : Account, bytes : int) -> Error:
 				return ERR_INVALID_DATA
 			session.login = login
 			var packet : PackedByteArray = [Utils.MessageType.SALT]
-			packet.append_array(err_info[3].to_ascii_buffer())
+			packet.append_array(err_info[3].to_ascii_buffer()) # to_ascii_buffer to delete
 			peer.put_data(packet)
 			session.id = err_info[1]
 			session.password = err_info[2]
@@ -196,10 +197,16 @@ func readTLS(session : Account, bytes : int) -> Error:
 			peer.put_u8(Utils.MessageType.RESPONSE_OK)
 		
 		Utils.MessageType.PREPARE_GAME:
-			if waiting_for_second_player == null:
+			if session.id == -1:
+				session.tls.put_u8(Utils.MessageType.ERROR_NOT_LOGGED_IN)
+			elif waiting_for_second_player == null:
 				waiting_for_second_player = session
+				session.tls.put_u8(Utils.MessageType.RESPONSE_OK)
 			else:
 				add_child(GameRoom.new(waiting_for_second_player, session))
+				session.tls.put_u8(Utils.MessageType.RESPONSE_OK)
+				waiting_for_second_player.tls.put_u8(Utils.MessageType.GAME_STARTED)
+				session.tls.put_u8(Utils.MessageType.GAME_STARTED)
 				waiting_for_second_player = null
 		
 		Utils.MessageType.JUST_STRING:
@@ -241,7 +248,7 @@ func create_account(login : String, password : String, salt : String) -> Utils.M
 		return Utils.MessageType.ERROR_INVALID_SALT
 
 func get_account_info(login : String) -> Array:
-	var p : float = randf()
+	var p : float = 0#randf()
 	if p <= 0.4:
 		return [Utils.MessageType.RESPONSE_OK, 1, "password", "placeholder"]
 		#[OK, id, hashed_password, salt]

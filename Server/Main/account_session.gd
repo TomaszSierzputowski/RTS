@@ -16,6 +16,7 @@ var key : PackedByteArray
 var hmac_authorisation : PackedByteArray
 
 func _init(peer : StreamPeerTLS) -> void:
+	id = -1
 	tls = peer
 	var tcp := tls.get_stream() as StreamPeerTCP
 	host = tcp.get_connected_host()

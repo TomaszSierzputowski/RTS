@@ -2,6 +2,9 @@ extends Object
 class_name Utils
 
 enum MessageType {
+	# Peer.get() returns 0 if disconnected
+	ERROR_DISCONNECTED = 0x00,
+	
 	# Common messages
 	RESPONSE_OK = 0x01,
 	ERROR_CONNECTION_ERROR = 0x0f,
@@ -31,6 +34,8 @@ enum MessageType {
 	PREPARE_GAME = 0x30,
 	GAME_STARTED = 0x31,
 	GAME_CANCELED = 0x3f,
+	ERROR_NOT_LOGGED_IN = 0x3e,
+	ERROR_NO_MORE_FREE_ROOMS = 0x3d,
 	
 	# Player in game actions messages
 	BUILD = 0x80,
@@ -57,5 +62,5 @@ const token_len := 64
 const key_len := 64
 const hmac_len := 32
 
-static var crypto = Crypto.new()
+static var crypto := Crypto.new()
 const hash_type := HashingContext.HashType.HASH_SHA256

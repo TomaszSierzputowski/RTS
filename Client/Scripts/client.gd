@@ -74,7 +74,7 @@ func readTLS(bytes : int) -> Error:
 		
 		_:
 			tls.put_u8(Utils.MessageType.ERROR_UNEXISTING_MESSAGE_TYPE)
-			print("MessageType not exists")
+			print("MessageType not exists: ", msgType)
 			return ERR_BUG
 	
 	return OK
@@ -135,8 +135,8 @@ func build(building_type : int, position : Vector2) -> void:
 	packet.resize(6)
 	packet.encode_u8(0, Utils.MessageType.BUILD)
 	packet.encode_u8(1, building_type)
-	packet.encode_s16(2, roundi(position.x))
-	packet.encode_s16(4, roundi(position.y))
+	packet.encode_s16(2, roundi(position.x * 4))
+	packet.encode_s16(4, roundi(position.y * 4))
 	send_udp_packet(packet)
 
 func summon(character_type : int, position : Vector2) -> void:
@@ -144,16 +144,16 @@ func summon(character_type : int, position : Vector2) -> void:
 	packet.resize(6)
 	packet.encode_u8(0, Utils.MessageType.SUMMON)
 	packet.encode_u8(1, character_type)
-	packet.encode_s16(2, roundi(position.x))
-	packet.encode_s16(4, roundi(position.y))
+	packet.encode_s16(2, roundi(position.x * 4))
+	packet.encode_s16(4, roundi(position.y * 4))
 	send_udp_packet(packet)
 
 func move(characters : PackedByteArray, position : Vector2) -> void:
 	var packet : PackedByteArray
 	packet.resize(5)
 	packet.encode_u8(0, Utils.MessageType.MOVE)
-	packet.encode_s16(1, roundi(position.x))
-	packet.encode_s16(3, roundi(position.y))
+	packet.encode_s16(1, roundi(position.x * 4))
+	packet.encode_s16(3, roundi(position.y * 4))
 	packet.append_array(characters)
 	send_udp_packet(packet)
 
@@ -250,12 +250,15 @@ func play() -> Utils.MessageType:
 	tls.put_u8(Utils.MessageType.PREPARE_GAME)
 	var response = await wait_for_response()
 	if response != Utils.MessageType.RESPONSE_OK:
+		print("Server cannot prepare game: ", response)
 		return response
 	if await waiting_for_opponent:
 		tls.put_u8(Utils.MessageType.GAME_CANCELED)
+		print("Game canceled")
 		return Utils.MessageType.GAME_CANCELED
 	
 	in_game = true
+	print("Game started")
 	return Utils.MessageType.RESPONSE_OK
 
 func cancel_play() -> void:
@@ -285,7 +288,6 @@ func connect_to_server(_tls_host : String, _tls_port : int, _udp_host : String, 
 		print("Client already connected to server")
 		return ERR_ALREADY_EXISTS
 	print("trying to connect")
-	tls = StreamPeerTLS.new()
 	if tcp != null:
 		if tcp.get_status() == StreamPeerTCP.STATUS_CONNECTED:
 			tcp.disconnect_from_host()
@@ -309,11 +311,7 @@ func connect_to_server(_tls_host : String, _tls_port : int, _udp_host : String, 
 	print("TCP connected")
 	tcp.put_u8(Utils.MessageType.RESPONSE_OK)
 	
-	var response := await wait_for_response()
-	if response == Utils.MessageType.ERROR_TIMEOUT:
-		print("connection timeout")
-		tcp.disconnect_from_host()
-		return ERR_TIMEOUT
+	var response := tcp.get_u8() as Utils.MessageType
 	if response == Utils.MessageType.NO_MORE_FREE_SEATS:
 		print("No more free seats")
 		tcp.disconnect_from_host()
@@ -323,6 +321,7 @@ func connect_to_server(_tls_host : String, _tls_port : int, _udp_host : String, 
 		tcp.disconnect_from_host()
 		return ERR_CONNECTION_ERROR
 	
+	tls = StreamPeerTLS.new()
 	var tls_connect_err : Error = tls.connect_to_stream(tcp, "localhost", TLSOptions.client_unsafe(load("res://Shared/cert.crt")))
 	if tls_connect_err != OK:
 		print("Failed to tls connect")

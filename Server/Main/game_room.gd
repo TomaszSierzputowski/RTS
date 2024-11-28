@@ -86,14 +86,18 @@ func readUDP(player : int) -> Utils.MessageType:
 
 
 # tmp - dodać funkcjom działanie
-func build(_player : int, _building_type : int, _position : Vector2) -> bool:
+func build(player : int, building_type : int, position : Vector2) -> bool:
+	print("Player ", player, " built ", building_type, " on position ", position)
 	return true
 
-func summon(_player : int, _character_type : int, _position : Vector2) -> bool:
+func summon(player : int, character_type : int, position : Vector2) -> bool:
+	print("Player ", player, " summoned ", character_type, " on position ", position)
 	return true
 
-func move(_player : int, _ids : PackedByteArray, _position : Vector2) -> bool:
+func move(player : int, ids : PackedByteArray, position : Vector2) -> bool:
+	print("Player ", player, " moved ", ids, " to position ", position)
 	return true
 
-func attack(_player : int, _ids : PackedByteArray, _target : int) -> bool:
+func attack(player : int, ids : PackedByteArray, target : int) -> bool:
+	print("Player ", player, " attacked with ", ids, " opponent's ", target)
 	return true
