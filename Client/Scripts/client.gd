@@ -2,6 +2,7 @@ extends Node
 
 func _ready() -> void:
 	set_waiting_timer.call_deferred()
+	packets_to_send.resize(32)
 
 #Reading from server
 func _process(_delta: float) -> void:
@@ -105,12 +106,64 @@ func readUDP() -> Error:
 	
 	return OK
 
+var next_packet_id : int = 1
 var packets_to_send : Array[PackedByteArray]
 var no_packets : int = 0
 var server_received : PackedByteArray
 func writeUDP() -> void:
-	for i in range(no_packets):
-		pass
+	var i := 0
+	while i < no_packets:
+		if packets_to_send[i][0] in server_received:
+			no_packets -= 1
+			packets_to_send[i] = packets_to_send[no_packets]
+		else:
+			udp.put_packet(packets_to_send[i])
+			i += 1
+
+func send_udp_packet(packet : PackedByteArray) -> void:
+	var hmac := token.duplicate()
+	hmac.append_array(packet)
+	hmac = Utils.crypto.hmac_digest(Utils.hash_type, key, hmac)
+	hmac.append(next_packet_id)
+	next_packet_id = (next_packet_id + 1) % 256
+	hmac.append_array(packet)
+	packets_to_send[no_packets] = hmac
+	no_packets += 1
+
+func build(building_type : int, position : Vector2) -> void:
+	var packet : PackedByteArray
+	packet.resize(6)
+	packet.encode_u8(0, Utils.MessageType.BUILD)
+	packet.encode_u8(1, building_type)
+	packet.encode_s16(2, roundi(position.x))
+	packet.encode_s16(4, roundi(position.y))
+	send_udp_packet(packet)
+
+func summon(character_type : int, position : Vector2) -> void:
+	var packet : PackedByteArray
+	packet.resize(6)
+	packet.encode_u8(0, Utils.MessageType.SUMMON)
+	packet.encode_u8(1, character_type)
+	packet.encode_s16(2, roundi(position.x))
+	packet.encode_s16(4, roundi(position.y))
+	send_udp_packet(packet)
+
+func move(characters : PackedByteArray, position : Vector2) -> void:
+	var packet : PackedByteArray
+	packet.resize(5)
+	packet.encode_u8(0, Utils.MessageType.MOVE)
+	packet.encode_s16(1, roundi(position.x))
+	packet.encode_s16(3, roundi(position.y))
+	packet.append_array(characters)
+	send_udp_packet(packet)
+
+func attack(characters : PackedByteArray, target : int) -> void:
+	var packet : PackedByteArray
+	packet.resize(2)
+	packet.encode_u8(0, Utils.MessageType.ATTACK)
+	packet.encode_u8(1, target)
+	packet.append_array(characters)
+	send_udp_packet(packet)
 
 #Waiting for responses
 var timer : Timer
@@ -256,6 +309,20 @@ func connect_to_server(_tls_host : String, _tls_port : int, _udp_host : String, 
 	print("TCP connected")
 	tcp.put_u8(Utils.MessageType.RESPONSE_OK)
 	
+	var response := await wait_for_response()
+	if response == Utils.MessageType.ERROR_TIMEOUT:
+		print("connection timeout")
+		tcp.disconnect_from_host()
+		return ERR_TIMEOUT
+	if response == Utils.MessageType.NO_MORE_FREE_SEATS:
+		print("No more free seats")
+		tcp.disconnect_from_host()
+		return ERR_OUT_OF_MEMORY
+	if response != Utils.MessageType.RESPONSE_OK:
+		print("Error: ", response)
+		tcp.disconnect_from_host()
+		return ERR_CONNECTION_ERROR
+	
 	var tls_connect_err : Error = tls.connect_to_stream(tcp, "localhost", TLSOptions.client_unsafe(load("res://Shared/cert.crt")))
 	if tls_connect_err != OK:
 		print("Failed to tls connect")
@@ -283,7 +350,7 @@ func connect_to_server(_tls_host : String, _tls_port : int, _udp_host : String, 
 	key = token_key[1]
 	if err != OK:
 		return ERR_CONNECTION_ERROR
-	var response = Utils.MessageType.ERROR_TIMEOUT
+	response = Utils.MessageType.ERROR_TIMEOUT
 	while response == Utils.MessageType.ERROR_TIMEOUT:
 		udp.put_packet(Utils.crypto.hmac_digest(Utils.hash_type, key, token))
 		response = await wait_for_response()

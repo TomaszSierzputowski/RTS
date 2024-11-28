@@ -8,6 +8,7 @@ enum MessageType {
 	ERROR_TIMEOUT = 0x0e,
 	ERROR_UNEXISTING_MESSAGE_TYPE = 0x0d,
 	ERROR_TO_FEW_BYTES = 0x0c,
+	NO_MORE_FREE_SEATS = 0x0b,
 	
 	# UDP authorisation while connecting messages
 	TOKEN_AND_KEY = 0x11,
