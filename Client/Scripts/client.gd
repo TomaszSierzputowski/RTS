@@ -3,6 +3,7 @@ extends Node
 func _ready() -> void:
 	set_waiting_timer.call_deferred()
 	packets_to_send.resize(32)
+	randomize()
 
 #Reading from server
 func _process(_delta: float) -> void:
@@ -84,6 +85,9 @@ func readUDP() -> Error:
 	var msgType := packet.decode_u8(0) as Utils.MessageType
 	match msgType:
 		Utils.MessageType.BOARD_STATE:
+			if packet.slice(1) != server_received:
+				print(packet.slice(1))
+				server_received = packet.slice(1)
 			pass
 		
 		Utils.MessageType.ERROR_INVALID_HMAC_ERROR:
@@ -113,11 +117,12 @@ var server_received : PackedByteArray
 func writeUDP() -> void:
 	var i := 0
 	while i < no_packets:
-		if packets_to_send[i][0] in server_received:
+		if packets_to_send[i][32] in server_received:
 			no_packets -= 1
 			packets_to_send[i] = packets_to_send[no_packets]
 		else:
 			udp.put_packet(packets_to_send[i])
+			#print("Sended packet of id: ", packets_to_send[i][32])
 			i += 1
 
 func send_udp_packet(packet : PackedByteArray) -> void:
@@ -220,7 +225,7 @@ func sign_up(login : String, password : String, salt : String = "placeholder") -
 	return await wait_for_response()
 
 signal continue_signing(salt : String)
-var waiting_for_salt : = false
+var waiting_for_salt := false
 func sign_in(login : String, password : String) -> Utils.MessageType:
 	var packet : PackedByteArray
 	var login_len : int = login.length()
