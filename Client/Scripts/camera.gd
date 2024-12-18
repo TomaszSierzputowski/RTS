@@ -4,7 +4,7 @@ var zoomSpeed : float = 10
 
 var zoomTarget :Vector2
 
-var maxZoom = Vector2(0.25, 0.25)
+var maxZoom = Vector2(0.5, 0.5)
 var minZoom = Vector2(1.5, 1.5)
 
 var minPosition = Vector2(-3760, -5390)

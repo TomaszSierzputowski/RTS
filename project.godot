@@ -19,10 +19,6 @@ config/icon="res://icon.svg"
 
 Client="*res://Client/Scripts/client.gd"
 
-[display]
-
-window/stretch/mode="viewport"
-
 [dotnet]
 
 project/assembly_name="RTS"
