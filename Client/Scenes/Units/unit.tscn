@@ -1,8 +1,9 @@
-[gd_scene load_steps=8 format=3 uid="uid://dvuxshn67b7bv"]
+[gd_scene load_steps=9 format=3 uid="uid://dvuxshn67b7bv"]
 
 [ext_resource type="Script" path="res://Client/Scripts/Units/unit.gd" id="1_mgv8a"]
 [ext_resource type="Texture2D" uid="uid://0ma31p6nrpj" path="res://Client/Sprites/units/unit_1_red.png" id="1_tm2hv"]
-[ext_resource type="Texture2D" uid="uid://c80kgjmquyy30" path="res://Client/Sprites/selected.png" id="3_io3xt"]
+[ext_resource type="Texture2D" uid="uid://c4kb7mnm8vioa" path="res://Client/Sprites/units/unit_1_highlight.png" id="2_41fbw"]
+[ext_resource type="Texture2D" uid="uid://bc1vypnrc7vbh" path="res://Client/Sprites/units/unit_1_outline.png" id="3_vouq6"]
 [ext_resource type="Texture2D" uid="uid://capg52sfp7wkw" path="res://Client/Sprites/units/unit_1_blue.png" id="4_urqj5"]
 [ext_resource type="Texture2D" uid="uid://btu0pps56mpo1" path="res://Client/Sprites/units/unit_2_red.png" id="5_rcum1"]
 [ext_resource type="Texture2D" uid="uid://b4c5ah62gw5bx" path="res://Client/Sprites/units/unit_2_blue.png" id="6_qljqf"]
@@ -11,14 +12,18 @@
 radius = 40.0
 
 [node name="unit" type="CharacterBody2D"]
+position = Vector2(347, 282)
 input_pickable = true
 script = ExtResource("1_mgv8a")
+hp = 100
+unit_color = true
 
-[node name="box" type="Sprite2D" parent="."]
+[node name="highlight" type="Sprite2D" parent="."]
 visible = false
-texture = ExtResource("3_io3xt")
+texture = ExtResource("2_41fbw")
 
 [node name="unit_1_red" type="Sprite2D" parent="."]
+visible = false
 texture = ExtResource("1_tm2hv")
 
 [node name="unit_1_blue" type="Sprite2D" parent="."]
@@ -32,6 +37,9 @@ texture = ExtResource("5_rcum1")
 [node name="unit_2_blue" type="Sprite2D" parent="."]
 visible = false
 texture = ExtResource("6_qljqf")
+
+[node name="outline" type="Sprite2D" parent="."]
+texture = ExtResource("3_vouq6")
 
 [node name="shape" type="CollisionShape2D" parent="."]
 shape = SubResource("CircleShape2D_0emnx")
