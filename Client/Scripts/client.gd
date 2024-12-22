@@ -2,7 +2,7 @@ extends Node
 
 func _ready() -> void:
 	set_waiting_timer.call_deferred()
-	packets_to_send.resize(32)
+	packets_to_resend.resize(32)
 	randomize()
 
 #Reading from server
@@ -82,48 +82,42 @@ func readTLS(bytes : int) -> Error:
 
 func readUDP() -> Error:
 	var packet := udp.get_packet()
-	var msgType := packet.decode_u8(0) as Utils.MessageType
-	match msgType:
-		Utils.MessageType.BOARD_STATE:
-			if packet.slice(1) != server_received:
-				print(packet.slice(1))
-				server_received = packet.slice(1)
-			pass
-		
-		Utils.MessageType.ERROR_INVALID_HMAC_ERROR:
-			pass
-		
-		Utils.MessageType.ERROR_CANNOT_BUILD:
-			pass
-		
-		Utils.MessageType.ERROR_CANNOT_SUMMON:
-			pass
-		
-		Utils.MessageType.ERROR_CANNOT_MOVE:
-			pass
-		
-		Utils.MessageType.ERROR_CANNOT_ATTACK:
-			pass
-		
-		_:
-			pass
+	if packet.slice(0, 32) != server_received:
+		server_received = packet.slice(0, 32)
+		server_change = true
+	else:
+		server_change = false
 	
 	return OK
 
 var next_packet_id : int = 1
-var packets_to_send : Array[PackedByteArray]
-var no_packets : int = 0
+var new_packet : PackedByteArray
+var is_new_packet := false
+var packets_to_resend : Array[PackedByteArray]
+var no_repackets : int = 0
 var server_received : PackedByteArray
+var server_change := false
 func writeUDP() -> void:
 	var i := 0
-	while i < no_packets:
-		if packets_to_send[i][32] in server_received:
-			no_packets -= 1
-			packets_to_send[i] = packets_to_send[no_packets]
-		else:
-			udp.put_packet(packets_to_send[i])
+	if server_change:
+		while i < no_repackets:
+			if packets_to_resend[i][32] in server_received:
+				no_repackets -= 1
+				packets_to_resend[i] = packets_to_resend[no_repackets]
+			else:
+				udp.put_packet(packets_to_resend[i])
+				#print("Sended packet of id: ", packets_to_send[i][32])
+				i += 1
+	else:
+		while i < no_repackets:
+			udp.put_packet(packets_to_resend[i])
 			#print("Sended packet of id: ", packets_to_send[i][32])
 			i += 1
+	if is_new_packet:
+		udp.put_packet(new_packet)
+		is_new_packet = false
+		packets_to_resend[no_repackets] = new_packet
+		no_repackets += 1
 
 func send_udp_packet(packet : PackedByteArray) -> void:
 	var hmac := token.duplicate()
@@ -132,10 +126,10 @@ func send_udp_packet(packet : PackedByteArray) -> void:
 	hmac.append(next_packet_id)
 	next_packet_id = (next_packet_id + 1) % 256
 	hmac.append_array(packet)
-	packets_to_send[no_packets] = hmac
-	no_packets += 1
+	new_packet = hmac
+	is_new_packet = true
 
-func build(building_type : int, position : Vector2) -> void:
+func build(building_type : Utils.EntityType, position : Vector2) -> void:
 	var packet : PackedByteArray
 	packet.resize(6)
 	packet.encode_u8(0, Utils.MessageType.BUILD)
@@ -144,7 +138,7 @@ func build(building_type : int, position : Vector2) -> void:
 	packet.encode_s16(4, roundi(position.y * 4))
 	send_udp_packet(packet)
 
-func summon(character_type : int, position : Vector2) -> void:
+func summon(character_type : Utils.EntityType, position : Vector2) -> void:
 	var packet : PackedByteArray
 	packet.resize(6)
 	packet.encode_u8(0, Utils.MessageType.SUMMON)
@@ -172,7 +166,7 @@ func attack(characters : PackedByteArray, target : int) -> void:
 
 #Waiting for responses
 var timer : Timer
-func set_waiting_timer():
+func set_waiting_timer() -> void:
 	timer = Timer.new()
 	add_child(timer)
 	timer.one_shot = true
@@ -234,14 +228,14 @@ func sign_in(login : String, password : String) -> Utils.MessageType:
 	packet.encode_u8(1, login_len)
 	encode_string(packet, 2, login)
 	tls.put_data(packet)
-	var response = await wait_for_response()
+	var response := await wait_for_response()
 	if response != Utils.MessageType.RESPONSE_OK:
 		return response
 	waiting_for_salt = true
-	var salt = await continue_signing
+	var salt : String = await continue_signing
 	waiting_for_salt = false
-	var hashed_password = password
-	var hash_len = hashed_password.length()
+	var hashed_password := password
+	var hash_len := hashed_password.length()
 	packet.resize(2 + hash_len)
 	packet.encode_u8(0, Utils.MessageType.HASHED_PASSWORD)
 	packet.encode_u8(1, hash_len)

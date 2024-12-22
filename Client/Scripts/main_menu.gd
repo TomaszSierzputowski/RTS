@@ -13,8 +13,8 @@ func _ready() -> void:
 var mode : int
 func _on_connect_button_pressed() -> void:
 	if Client.in_game:
-		Client.build(1, Vector2(PI, PI))
-		Client.summon(1, Vector2(PI, PI))
+		Client.build(Utils.EntityType.BUILDING, Vector2(PI, PI))
+		Client.summon(Utils.EntityType.CHARACTER, Vector2(PI, PI))
 		Client.move([1], Vector2(PI, PI))
 		Client.attack([1], 1)
 	elif Client.connected:
@@ -33,7 +33,7 @@ func _on_connect_button_pressed() -> void:
 		if conn_err == OK:
 			pass#get_tree().change_scene_to_file("res://Client/Scenes/login_menu.tscn")
 
-func _on_mode_selected(_mode : int):
+func _on_mode_selected(_mode : int) -> void:
 	mode = _mode
 	match mode:
 		0:
