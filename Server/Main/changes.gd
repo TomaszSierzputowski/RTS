@@ -27,6 +27,7 @@ func _init(_main_player : int) -> void:
 
 func extract_changes() -> PackedByteArray:
 	var packet : PackedByteArray
+	packet.resize(34)
 	var p := [Utils.MessageType.POS_CHANGE, 0] as PackedByteArray
 	var no_p := 0
 	var po := [Utils.MessageType.POS_CHANGE_OPP, 0] as PackedByteArray

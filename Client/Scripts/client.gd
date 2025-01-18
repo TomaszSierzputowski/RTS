@@ -80,13 +80,161 @@ func readTLS(bytes : int) -> Error:
 	
 	return OK
 
+signal set_resources(val : int)
+signal change_position(player : int, id : int, position : Vector2)
+signal change_health(player : int, id : int, health : int)
+signal summon_build(player : int, id : int, type : Utils.EntityType, position : Vector2, health : int)
+signal appear(id : int, type : Utils.EntityType, position : Vector2, health : int)
+signal die_destroy(player : int, id : int)
+signal disappear(id : int)
+# w razie problemów spróbować wyrzucać wszystkie pakiety prócz ostatniego
+# w razie przeskoków spróbować dodać id pakietom od serwera i ignorować docierające w złej kolejności
 func readUDP() -> Error:
 	var packet := udp.get_packet()
+	# można dodać sprawdzanie, gdzie dokładnie się różni, żeby wiedzieć, które ruchy zostały obsłużone
+	# w ten sposób, można zauważyć niepowodzenie w jakiejś akcji i to sygnalizować (choć nie będzie to takie proste)
 	if packet.slice(0, 32) != server_received:
 		server_received = packet.slice(0, 32)
 		server_change = true
 	else:
 		server_change = false
+	
+	set_resources.emit(packet.decode_u16(32))
+	
+	var i : int = 34
+	var packet_size : int = packet.size()
+	while i < packet_size:
+		match packet[i]: # use changes.gd
+			Utils.MessageType.SUMMONED_BUILT:
+				if i + 7 >= packet_size:
+					print("Too few bytes for summoned_built")
+					return ERR_INVALID_DATA
+				var x = 0.25 * packet.decode_s16(i + 3)
+				var y = 0.25 * packet.decode_s16(i + 5)
+				summon_build.emit(0, packet[i+1], packet[i+2], Vector2(x, y), packet[i+5])
+				i += 8
+			Utils.MessageType.SUMMONED_BUILT_OPP:
+				if i + 7 >= packet_size:
+					print("Too few bytes for summoned_built_opp")
+					return ERR_INVALID_DATA
+				var x = 0.25 * packet.decode_s16(i + 3)
+				var y = 0.25 * packet.decode_s16(i + 5)
+				summon_build.emit(1, packet[i+1], packet[i+2], Vector2(x, y), packet[i+5])
+				i += 8
+			Utils.MessageType.APPEARED:
+				if i + 7 >= packet_size:
+					print("Too few bytes for appeared")
+					return ERR_INVALID_DATA
+				var x = 0.25 * packet.decode_s16(i + 3)
+				var y = 0.25 * packet.decode_s16(i + 5)
+				appear.emit(packet[i+1], packet[i+2], Vector2(x, y), packet[i+5])
+				i += 8
+			Utils.MessageType.DIED_DESTROYED:
+				if i + 1 >= packet_size:
+					print("Too few bytes for died_destroyed")
+					return ERR_INVALID_DATA
+				die_destroy.emit(0, packet[i+1])
+				i += 2
+			Utils.MessageType.DIED_DESTROYED_OPP:
+				if i + 1 >= packet_size:
+					print("Too few bytes for died_destroyed")
+					return ERR_INVALID_DATA
+				die_destroy.emit(1, packet[i+1])
+				i += 2
+			Utils.MessageType.DISAPPEARED:
+				if i + 1 >= packet_size:
+					print("Too few bytes for disappeared")
+					return ERR_INVALID_DATA
+				die_destroy.emit(packet[i+1])
+				i += 2
+			Utils.MessageType.POS_CHANGE:
+				i += 1
+				if i >= packet_size:
+					print("Too few bytes for pos_change")
+					return ERR_INVALID_DATA
+				var last = i + 5 * packet[i]
+				if last >= packet_size:
+					print("Too few bytes for pos_change")
+					return ERR_INVALID_DATA
+				i += 1
+				while i <= last:
+					var x = 0.25 * packet.decode_s16(i+1)
+					var y = 0.25 * packet.decode_s16(i+3)
+					change_position.emit(0, packet[i], Vector2(x, y))
+					i += 5
+			Utils.MessageType.POS_CHANGE_OPP:
+				i += 1
+				if i >= packet_size:
+					print("Too few bytes for pos_change")
+					return ERR_INVALID_DATA
+				var last = i + 5 * packet[i]
+				if last >= packet_size:
+					print("Too few bytes for pos_change")
+					return ERR_INVALID_DATA
+				i += 1
+				while i <= last:
+					var x = 0.25 * packet.decode_s16(i+1)
+					var y = 0.25 * packet.decode_s16(i+3)
+					change_position.emit(1, packet[i], Vector2(x, y))
+					i += 5
+			Utils.MessageType.HP_CHANGE:
+				i += 1
+				if i >= packet_size:
+					print("Too few bytes for pos_change")
+					return ERR_INVALID_DATA
+				var last = i + 2 * packet[i]
+				if last >= packet_size:
+					print("Too few bytes for pos_change")
+					return ERR_INVALID_DATA
+				i += 1
+				while i <= last:
+					change_health.emit(0, packet[i], packet[i+1])
+					i += 2
+			Utils.MessageType.HP_CHANGE_OPP:
+				i += 1
+				if i >= packet_size:
+					print("Too few bytes for pos_change")
+					return ERR_INVALID_DATA
+				var last = i + 2 * packet[i]
+				if last >= packet_size:
+					print("Too few bytes for pos_change")
+					return ERR_INVALID_DATA
+				i += 1
+				while i <= last:
+					change_health.emit(1, packet[i], packet[i+1])
+					i += 2
+			Utils.MessageType.POS_HP_CHANGE:
+				i += 1
+				if i >= packet_size:
+					print("Too few bytes for pos_change")
+					return ERR_INVALID_DATA
+				var last = i + 6 * packet[i]
+				if last >= packet_size:
+					print("Too few bytes for pos_change")
+					return ERR_INVALID_DATA
+				i += 1
+				while i <= last:
+					var x = 0.25 * packet.decode_s16(i+1)
+					var y = 0.25 * packet.decode_s16(i+3)
+					change_position.emit(0, packet[i], Vector2(x, y))
+					change_health.emit(0, packet[i], packet[i+5])
+					i += 6
+			Utils.MessageType.POS_HP_CHANGE_OPP:
+				i += 1
+				if i >= packet_size:
+					print("Too few bytes for pos_change")
+					return ERR_INVALID_DATA
+				var last = i + 6 * packet[i]
+				if last >= packet_size:
+					print("Too few bytes for pos_change")
+					return ERR_INVALID_DATA
+				i += 1
+				while i <= last:
+					var x = 0.25 * packet.decode_s16(i+1)
+					var y = 0.25 * packet.decode_s16(i+3)
+					change_position.emit(1, packet[i], Vector2(x, y), packet[i+5])
+					change_health.emit(1, packet[i], packet[i+5])
+					i += 6
 	
 	return OK
 

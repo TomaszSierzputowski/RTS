@@ -46,6 +46,7 @@ func _process(_delta : float) -> void:
 const max_last_ids : int = 32
 var received_ids : Array[PackedByteArray]
 var id_idx : Array[int] = [0, 0]
+# w razie problemów spróbować wyrzucać wszystkie pakiety prócz ostatniego
 func readUDP(player : int) -> Utils.MessageType:
 	var peer := players[player].udp
 	var packet := peer.get_packet()
@@ -104,9 +105,10 @@ func readUDP(player : int) -> Utils.MessageType:
 
 var changes : Array[Changes]
 func send_board_changes(player : int) -> void:
-	var packet := received_ids[player].duplicate()
-	packet.append(game_get_resource(player))
-	packet.append_array(changes[player].extract_changes())
+	var packet := changes[player].extract_changes()
+	for i in range(32):
+		packet[i] = received_ids[player][i]
+	packet.encode_u16(32, game_get_resource(player))
 	players[player].udp.put_packet(packet)
 
 # tmp - dodać funkcjom działanie
