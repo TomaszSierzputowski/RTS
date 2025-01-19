@@ -1,0 +1,2 @@
+class_name	Building_1
+extends StaticBody2D
