@@ -69,7 +69,8 @@ func _on_register_go_button_pressed() -> void:
 			var response = await Client.sign_up(username, password1, "placeholder") 
 			if response == Utils.MessageType.RESPONSE_OK:
 				register_attempt.emit(username, password1, password2)
-				get_tree().change_scene_to_file("res://Client/Scenes/welcome_menu.tscn")
+				#get_tree().change_scene_to_file("res://Client/Scenes/welcome_menu.tscn")
+				#TODO: label update
 			else:
 				#Database.create_account(username,password1, "xdxdxdxdxdxd")
 				update_label(str(response))

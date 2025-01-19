@@ -61,7 +61,9 @@ func _input(event: InputEvent) -> void:
 			if event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
 				if get_resource_amount() >= unit_1_price:
 					var coords = $Map.get_global_mouse_position()
-					add_unit1(coords, id_num, player_color)
+					#add_unit1(coords, id_num, player_color)
+					#temp
+					Client.summon(Utils.EntityType.CHARACTER, coords)
 				else:
 					print("you do not have enough resource")
 			button_pressed = false
@@ -102,10 +104,20 @@ func _ready():
 	resource_amount = 200
 	# pobierz z servera kolor gracza
 	player_color = false
+	
+	Client.summon_build.connect(summon_build)
+	
+	#blue_units.resize(256)
 	pass
 	
 func get_resource_amount() -> int:
 	return resource_amount
+
+func summon_build(player : int, id : int, type : Utils.EntityType, position : Vector2, health : int) -> void:
+	match type:
+		Utils.EntityType.CHARACTER:
+			add_unit1(position, id, player == 0)
+	pass
 	
 func add_unit1(position: Vector2, id: int, color: bool) -> void:
 	var new_unit = unit_1.instantiate()

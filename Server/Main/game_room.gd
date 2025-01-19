@@ -3,6 +3,8 @@ class_name GameRoom
 
 var players : Array[Account]
 
+var session : GameSession
+
 func _init(player1 : Account, player2 : Account) -> void:
 	received_ids.resize(2)
 	received_ids[0].resize(max_last_ids)
@@ -13,25 +15,28 @@ func _init(player1 : Account, player2 : Account) -> void:
 	changes.resize(2)
 	changes[0] = Changes.new(0)
 	changes[1] = Changes.new(1)
-	process_thread_group = PROCESS_THREAD_GROUP_SUB_THREAD
+	#process_thread_group = PROCESS_THREAD_GROUP_SUB_THREAD
 	
-	game_summoned_built[0].connect(changes[0].summoned_built)
-	game_summoned_built[1].connect(changes[1].summoned_built)
-	game_died_destroyed[0].connect(changes[0].died_destroyed)
-	game_died_destroyed[1].connect(changes[1].died_destroyed)
-	game_appeared[0].connect(changes[0].appeared)
-	game_appeared[1].connect(changes[1].appeared)
-	game_disappeared[0].connect(changes[0].disappeared)
-	game_disappeared[1].connect(changes[1].disappeared)
-	game_position_changed[0].connect(changes[0].position_changed)
-	game_position_changed[1].connect(changes[1].position_changed)
-	game_hp_changed[0].connect(changes[0].hp_changed)
-	game_hp_changed[1].connect(changes[1].hp_changed)
+	session = GameSession.new()
+	
+	session.game_summoned_built[0].connect(changes[0].summoned_built)
+	session.game_summoned_built[1].connect(changes[1].summoned_built)
+	session.game_died_destroyed[0].connect(changes[0].died_destroyed)
+	session.game_died_destroyed[1].connect(changes[1].died_destroyed)
+	session.game_appeared[0].connect(changes[0].appeared)
+	session.game_appeared[1].connect(changes[1].appeared)
+	session.game_disappeared[0].connect(changes[0].disappeared)
+	session.game_disappeared[1].connect(changes[1].disappeared)
+	session.game_position_changed[0].connect(changes[0].position_changed)
+	session.game_position_changed[1].connect(changes[1].position_changed)
+	session.game_hp_changed[0].connect(changes[0].hp_changed)
+	session.game_hp_changed[1].connect(changes[1].hp_changed)
 
 func _ready() -> void:
 	print("Game started")
 	print("PLayer 1: ", players[0].id)
 	print("Player 2: ", players[1].id)
+	add_child(session)
 
 func _process(_delta : float) -> void:
 	while players[0].udp.get_available_packet_count() > 0:
@@ -79,7 +84,8 @@ func readUDP(player : int) -> Utils.MessageType:
 				return Utils.MessageType.ERROR_TO_FEW_BYTES
 			var character_type := packet.decode_u8(1) as Utils.EntityType
 			var position := Vector2(0.25 * packet.decode_s16(2), 0.25 * packet.decode_s16(4))
-			game_summon(player, character_type, position)
+			#game_summon(player, character_type, position)
+			session.summon(player, character_type, position)
 		
 		Utils.MessageType.MOVE:
 			if packet_size < 6:
@@ -126,22 +132,3 @@ func game_attack(player : int, ids : PackedByteArray, target : int) -> void:
 
 func game_get_resource(player : int) -> int:
 	return 0
-
-signal game_sb_sig0(player : int, id : int, entity : Utils.EntityType, position : Vector2)
-signal game_sb_sig1(player : int, id : int, entity : Utils.EntityType, position : Vector2)
-var game_summoned_built : Array[Signal] = [game_sb_sig0, game_sb_sig1]
-signal game_dd_sig0(player : int, id : int)
-signal game_dd_sig1(player : int, id : int)
-var game_died_destroyed : Array[Signal] = [game_dd_sig0, game_dd_sig1]
-signal game_a_sig0(id : int, entity : Utils.EntityType, position : Vector2, hp : int)
-signal game_a_sig1(id : int, entity : Utils.EntityType, position : Vector2, hp : int)
-var game_appeared : Array[Signal] = [game_a_sig0, game_a_sig1]
-signal game_d_sig0(id : int)
-signal game_d_sig1(id : int)
-var game_disappeared : Array[Signal] = [game_d_sig0, game_d_sig1]
-signal game_pc_sig0(player : int, id : int, new_position : Vector2)
-signal game_pc_sig1(player : int, id : int, new_position : Vector2)
-var game_position_changed : Array[Signal] = [game_pc_sig0, game_pc_sig1]
-signal game_hc_sig0(player : int, id : int, hp : int)
-signal game_hc_sig1(player : int, id : int, hp : int)
-var game_hp_changed : Array[Signal] = [game_hc_sig0, game_hc_sig1]

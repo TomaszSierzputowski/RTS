@@ -103,6 +103,8 @@ func readUDP() -> Error:
 	
 	var i : int = 34
 	var packet_size : int = packet.size()
+	if i < packet_size:
+		print("Interesting packet")
 	while i < packet_size:
 		match packet[i]: # use changes.gd
 			Utils.MessageType.SUMMONED_BUILT:

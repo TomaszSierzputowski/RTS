@@ -59,7 +59,7 @@ func _delete_record(query: String, params: Array, error_message: String):
 	if not db.query_with_bindings(query, params):
 		_log_message(error_message + ": " + db.get_error_message())
 
-func create_account(username: String, hashed_password: String, salt: String) -> int:
+func create_account(username: String, hashed_password: String, salt: String) -> Utils.MessageType:
 	var existing_user = _get_record(
 		"SELECT * FROM players WHERE username = ?",
 		[username],
@@ -67,13 +67,17 @@ func create_account(username: String, hashed_password: String, salt: String) -> 
 	)
 	if existing_user.size() > 0:
 		_log_message("Username already exists.")
-		return -1
+		return Utils.MessageType.ERROR_LOGIN_ALREADY_IN_DATABASE
 		
-	return _insert_record(
+	var err = _insert_record(
 		"INSERT INTO players (username, password, salt) VALUES (?, ?, ?)",
 		[username, hashed_password, salt],
 		"Failed to create account"
 	)
+	
+	if err < 0:
+		return Utils.MessageType.ERROR_INVALID_LOGIN
+	return Utils.MessageType.RESPONSE_OK
 
 func get_account_info(username: String) -> Array:
 	var existing_user = _get_record(
@@ -83,7 +87,7 @@ func get_account_info(username: String) -> Array:
 	)
 	if existing_user.size() == 0:
 		_log_message("Invalid input: username must not be empty.")
-		return [-1, "Invalid username"]
+		return [Utils.MessageType.ERROR_INVALID_LOGIN]
 	
 	var user_data = _get_record(
 		"SELECT id, password, salt FROM players WHERE username = ?",
@@ -92,9 +96,9 @@ func get_account_info(username: String) -> Array:
 	)
 	if user_data.size() == 0:
 		_log_message("Account not found for username: " + username) 
-		return [-1, "Account not found"]
+		return [Utils.MessageType.ERROR_LOGIN_NOT_IN_DATABASE]
 	
-	return [1, user_data["id"], user_data["password"], user_data["salt"]]
+	return [Utils.MessageType.RESPONSE_OK, user_data["id"], user_data["password"], user_data["salt"]]
 
 func _is_valid_text(text: String) -> bool:
 	var regex = RegEx.new()

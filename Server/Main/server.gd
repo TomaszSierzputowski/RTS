@@ -156,7 +156,7 @@ func readTLS(session : Account, bytes : int) -> Error:
 				if bytes > 3: peer.get_partial_data(bytes - 3)
 				peer.put_u8(Utils.MessageType.ERROR_TO_FEW_BYTES)
 				return ERR_INVALID_DATA
-			peer.put_u8(create_account(peer.get_string(login_len), peer.get_string(pass_len), peer.get_string(Utils.salt_len)))
+			peer.put_u8(Database.create_account(peer.get_string(login_len), peer.get_string(pass_len), peer.get_string(Utils.salt_len)))
 		
 		Utils.MessageType.ASK_FOR_SALT:
 			if bytes < 2:
@@ -168,7 +168,7 @@ func readTLS(session : Account, bytes : int) -> Error:
 				peer.put_u8(Utils.MessageType.ERROR_TO_FEW_BYTES)
 				return ERR_INVALID_DATA
 			var login = peer.get_string(login_len)
-			var err_info = get_account_info(login)
+			var err_info = Database.get_account_info(login)
 			peer.put_u8(err_info[0])
 			if err_info[0] != Utils.MessageType.RESPONSE_OK:
 				return ERR_INVALID_DATA
@@ -228,33 +228,3 @@ func readTLS(session : Account, bytes : int) -> Error:
 			return ERR_BUG
 	
 	return OK
-
-func create_account(login : String, password : String, salt : String) -> Utils.MessageType:
-	var p : float = randf()
-	if p <= 0.2:
-		print("Creating account: login: ", login, ", password: ", password, ", salt: ", salt)
-		return Utils.MessageType.RESPONSE_OK
-	elif p <= 0.4:
-		print("Login already in database")
-		return Utils.MessageType.ERROR_LOGIN_ALREADY_IN_DATABASE
-	elif p <= 0.6:
-		print("Invalid login")
-		return Utils.MessageType.ERROR_INVALID_LOGIN
-	elif p <= 0.8:
-		print("Invalid hashed password")
-		return Utils.MessageType.ERROR_INVALID_HASHED_PASSWORD
-	else:
-		print("Invalid salt")
-		return Utils.MessageType.ERROR_INVALID_SALT
-
-func get_account_info(login : String) -> Array:
-	var p : float = 0#randf()
-	if p <= 0.4:
-		return [Utils.MessageType.RESPONSE_OK, 1, "password", "placeholder"]
-		#[OK, id, hashed_password, salt]
-	elif p <= 0.7:
-		print("Login not in database")
-		return [Utils.MessageType.ERROR_LOGIN_NOT_IN_DATABASE]
-	else:
-		print("Invalid login")
-		return [Utils.MessageType.ERROR_INVALID_LOGIN]

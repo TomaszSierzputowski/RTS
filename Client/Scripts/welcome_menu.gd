@@ -20,7 +20,12 @@ func _on_login_attempt(username: String, password: String) -> void:
 	print(username)
 
 func _on_play_button_pressed() -> void:
-	get_tree().change_scene_to_file("res://Client/Scenes/map.tscn")
+	# zmiana sceny na jakieś "waiting for another player"
+	var err = await Client.play()
+	if err != Utils.MessageType.RESPONSE_OK:
+		print("Cannot start game: ", err)
+	else:
+		get_tree().change_scene_to_file("res://Client/Scenes/game.tscn")
 	
 func _on_delete_acc_button_pressed() -> void:
 	Database.delete_account(" ") #username

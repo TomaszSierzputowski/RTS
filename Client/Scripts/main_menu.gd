@@ -12,26 +12,16 @@ func _ready() -> void:
 
 var mode : int
 func _on_connect_button_pressed() -> void:
-	if Client.in_game:
-		Client.build(Utils.EntityType.BUILDING, Vector2(PI, PI))
-		Client.summon(Utils.EntityType.CHARACTER, Vector2(PI, PI))
-		Client.move([1], Vector2(PI, PI))
-		Client.attack([1], 1)
-	elif Client.connected:
-		await Client.sign_in("login", "password")
-		print("let's play")
-		await Client.play()
-	else:
-		var conn_err : Error
-		match mode:
-			0:
-				conn_err = await Client.connect_to_server("127.0.0.1", 4443, "127.0.0.1", 4443)
-			1:
-				conn_err = await Client.connect_to_server("aptuymn.localto.net", tunnel_input.text.to_int(), "aptuymn.localto.net", tunnel_input.text.to_int())
-			2:
-				conn_err = await Client.connect_to_server(tls_host_input.text, tls_port_input.text.to_int(), udp_host_input.text, udp_port_input.text.to_int())
-		if conn_err == OK:
-			pass#get_tree().change_scene_to_file("res://Client/Scenes/login_menu.tscn")
+	var conn_err : Error
+	match mode:
+		0:
+			conn_err = await Client.connect_to_server("127.0.0.1", 4443, "127.0.0.1", 4443)
+		1:
+			conn_err = await Client.connect_to_server("aptuymn.localto.net", tunnel_input.text.to_int(), "aptuymn.localto.net", tunnel_input.text.to_int())
+		2:
+			conn_err = await Client.connect_to_server(tls_host_input.text, tls_port_input.text.to_int(), udp_host_input.text, udp_port_input.text.to_int())
+	if conn_err == OK:
+		get_tree().change_scene_to_file("res://Client/Scenes/login_menu.tscn")
 
 func _on_mode_selected(_mode : int) -> void:
 	mode = _mode
