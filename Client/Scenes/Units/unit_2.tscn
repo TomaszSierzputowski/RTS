@@ -1,0 +1,47 @@
+[gd_scene load_steps=9 format=3 uid="uid://1erht6ckt215"]
+
+[ext_resource type="Script" path="res://Client/Scripts/Units/unit_2.gd" id="1_wmb8w"]
+[ext_resource type="Texture2D" uid="uid://cqw0tt4bu0glo" path="res://Client/Sprites/units/unit_2/unit_2_highlight.png" id="2_uet2j"]
+[ext_resource type="Texture2D" uid="uid://bc6a68cplhmqe" path="res://Client/Sprites/units/unit_2/unit_2_red.png" id="3_dkm84"]
+[ext_resource type="Texture2D" uid="uid://ciwsx688sf5d6" path="res://Client/Sprites/units/unit_2/unit_2_blue.png" id="4_o37gs"]
+[ext_resource type="Texture2D" uid="uid://dps384uhobpey" path="res://Client/Sprites/units/unit_2/unit_2_outline.png" id="5_qc2kn"]
+[ext_resource type="Texture2D" uid="uid://dmrcd4u23elcd" path="res://Client/Sprites/units/unit_2/unit_2_red_outline.png" id="6_gncwh"]
+[ext_resource type="Texture2D" uid="uid://bmilyf2i044uh" path="res://Client/Sprites/units/unit_2/unit_2_blue_outline.png" id="7_ew70r"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_0emnx"]
+radius = 74.027
+
+[node name="unit_2" type="CharacterBody2D"]
+position = Vector2(347, 282)
+input_pickable = true
+script = ExtResource("1_wmb8w")
+
+[node name="highlight" type="Sprite2D" parent="."]
+visible = false
+texture = ExtResource("2_uet2j")
+
+[node name="unit_2_red" type="Sprite2D" parent="."]
+visible = false
+texture = ExtResource("3_dkm84")
+
+[node name="unit_2_blue" type="Sprite2D" parent="."]
+visible = false
+texture = ExtResource("4_o37gs")
+
+[node name="outline" type="Sprite2D" parent="."]
+texture = ExtResource("5_qc2kn")
+
+[node name="shape" type="CollisionShape2D" parent="."]
+position = Vector2(0, 3)
+shape = SubResource("CircleShape2D_0emnx")
+one_way_collision_margin = 0.0
+
+[node name="red_outline" type="Sprite2D" parent="."]
+visible = false
+texture = ExtResource("6_gncwh")
+
+[node name="blue_outline" type="Sprite2D" parent="."]
+visible = false
+texture = ExtResource("7_ew70r")
+
+[connection signal="input_event" from="." to="." method="_on_input_event"]

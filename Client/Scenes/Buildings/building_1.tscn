@@ -1,0 +1,47 @@
+[gd_scene load_steps=9 format=3 uid="uid://cgx2nfnunpbs7"]
+
+[ext_resource type="Script" path="res://Client/Scripts/Buildings/building_1.gd" id="1_6xkyv"]
+[ext_resource type="Texture2D" uid="uid://psf0lidg6xsw" path="res://Client/Sprites/buildings/building_1/building_1_highlight.png" id="2_5d1e0"]
+[ext_resource type="Texture2D" uid="uid://drnspa4thm5ar" path="res://Client/Sprites/buildings/building_1/builiding_1_red.png" id="3_1ocsb"]
+[ext_resource type="Texture2D" uid="uid://dso44wsnjbbq1" path="res://Client/Sprites/buildings/building_1/builiding_1_blue.png" id="4_qb7fv"]
+[ext_resource type="Texture2D" uid="uid://brwnws7a6c5e5" path="res://Client/Sprites/buildings/building_1/building_1_outline.png" id="5_gkuqp"]
+[ext_resource type="Texture2D" uid="uid://dkc3104leuivl" path="res://Client/Sprites/buildings/building_1/builiding_1_red_outline.png" id="6_ivyqr"]
+[ext_resource type="Texture2D" uid="uid://02km7b1frwia" path="res://Client/Sprites/buildings/building_1/building_1_blue_outline.png" id="7_g2248"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_0emnx"]
+radius = 74.027
+
+[node name="building_1" type="CharacterBody2D"]
+position = Vector2(347, 282)
+input_pickable = true
+script = ExtResource("1_6xkyv")
+
+[node name="highlight" type="Sprite2D" parent="."]
+visible = false
+texture = ExtResource("2_5d1e0")
+
+[node name="building_1_red" type="Sprite2D" parent="."]
+visible = false
+texture = ExtResource("3_1ocsb")
+
+[node name="building_1_blue" type="Sprite2D" parent="."]
+visible = false
+texture = ExtResource("4_qb7fv")
+
+[node name="outline" type="Sprite2D" parent="."]
+texture = ExtResource("5_gkuqp")
+
+[node name="shape" type="CollisionShape2D" parent="."]
+position = Vector2(0, 3)
+shape = SubResource("CircleShape2D_0emnx")
+one_way_collision_margin = 0.0
+
+[node name="red_outline" type="Sprite2D" parent="."]
+visible = false
+texture = ExtResource("6_ivyqr")
+
+[node name="blue_outline" type="Sprite2D" parent="."]
+visible = false
+texture = ExtResource("7_g2248")
+
+[connection signal="input_event" from="." to="." method="_on_input_event"]
