@@ -15,11 +15,8 @@ func _ready() -> void:
 	zoomTarget = zoom
 	pass # Replace with function body.
 
-
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(delta: float) -> void:
-
-
 	Zoom(delta)
 	KeysControl(delta)
 	
@@ -52,7 +49,3 @@ func KeysControl(delta):
 
 	position.x = clamp(position.x, minPosition.x, maxPosition.x)
 	position.y = clamp(position.y, minPosition.y, maxPosition.y)
-
-	
-func ClickAndDrag():
-	pass

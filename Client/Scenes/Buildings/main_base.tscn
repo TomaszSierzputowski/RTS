@@ -1,0 +1,47 @@
+[gd_scene load_steps=9 format=3 uid="uid://kp0n74s2qpfc"]
+
+[ext_resource type="Texture2D" uid="uid://cknl8iqgveed0" path="res://Client/Sprites/buildings/main_base/main_base_highlight.png" id="2_tr8wr"]
+[ext_resource type="Texture2D" uid="uid://duhdore4q1pee" path="res://Client/Sprites/buildings/main_base/main_base_red.png" id="3_celuv"]
+[ext_resource type="Texture2D" uid="uid://dufjfrl7f3ukh" path="res://Client/Sprites/buildings/main_base/main_base_blue.png" id="4_7udqy"]
+[ext_resource type="Texture2D" uid="uid://cps7kmil1u7wh" path="res://Client/Sprites/buildings/main_base/main_base_outline.png" id="4_ktsoc"]
+[ext_resource type="Texture2D" uid="uid://mx0fbnwjosrq" path="res://Client/Sprites/buildings/main_base/main_base_red_outline.png" id="6_4mnbu"]
+[ext_resource type="Texture2D" uid="uid://crpoksxyquo18" path="res://Client/Sprites/buildings/main_base/main_base_blue_outline.png" id="7_sx5hf"]
+[ext_resource type="Script" path="res://Client/Scripts/Buildings/main_base.gd" id="8_nw17c"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_0emnx"]
+radius = 74.027
+
+[node name="main_base" type="CharacterBody2D"]
+position = Vector2(347, 282)
+input_pickable = true
+script = ExtResource("8_nw17c")
+
+[node name="highlight" type="Sprite2D" parent="."]
+visible = false
+texture = ExtResource("2_tr8wr")
+
+[node name="main_base_red" type="Sprite2D" parent="."]
+visible = false
+texture = ExtResource("3_celuv")
+
+[node name="main_base_blue" type="Sprite2D" parent="."]
+visible = false
+texture = ExtResource("4_7udqy")
+
+[node name="outline" type="Sprite2D" parent="."]
+texture = ExtResource("4_ktsoc")
+
+[node name="shape" type="CollisionShape2D" parent="."]
+position = Vector2(0, 3)
+shape = SubResource("CircleShape2D_0emnx")
+one_way_collision_margin = 0.0
+
+[node name="red_outline" type="Sprite2D" parent="."]
+visible = false
+texture = ExtResource("6_4mnbu")
+
+[node name="blue_outline" type="Sprite2D" parent="."]
+visible = false
+texture = ExtResource("7_sx5hf")
+
+[connection signal="input_event" from="." to="." method="_on_input_event"]
