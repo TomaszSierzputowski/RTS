@@ -1,0 +1,19 @@
+[gd_scene load_steps=4 format=3 uid="uid://dag2cv3fhhccq"]
+
+[ext_resource type="Script" path="res://Server/Game/Units/Player1/Scripts/Building_1.gd" id="1_003fx"]
+[ext_resource type="Texture2D" uid="uid://k8g00nptdicw" path="res://icon.svg" id="2_h6xyo"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_0sa8t"]
+size = Vector2(55, 53)
+
+[node name="Building_1" type="StaticBody2D"]
+collision_layer = 7
+script = ExtResource("1_003fx")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("RectangleShape2D_0sa8t")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+modulate = Color(1, 0, 1, 1)
+scale = Vector2(0.5, 0.5)
+texture = ExtResource("2_h6xyo")

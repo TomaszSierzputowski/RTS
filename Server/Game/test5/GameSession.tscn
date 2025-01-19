@@ -1,6 +1,0 @@
-[gd_scene load_steps=2 format=3 uid="uid://doipvwiqa3evw"]
-
-[ext_resource type="Script" path="res://Server/Game/test5/GameSession.gd" id="1_jdo2k"]
-
-[node name="GameSession" type="Node"]
-script = ExtResource("1_jdo2k")
