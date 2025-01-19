@@ -13,7 +13,6 @@ var waiting_for_second_player : GameRoom
 @onready var timer : Timer = $Timer
 
 func _ready() -> void:
-	Database._ready()
 	tcp.listen(tcp_port)
 	udp.listen(udp_port)
 	print("server is listening on port ", tcp_port)
