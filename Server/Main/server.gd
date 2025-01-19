@@ -6,9 +6,12 @@ const udp_port : int = 4443
 var tcp : TCPServer = TCPServer.new()
 const tcp_port : int = 4443
 
+const max_no_players : int = 65536
 var sessions : Array[Account]
+var no_sessions : int = 0
 var waiting_for_authorization : Array[Account]
-var waiting_for_second_player : GameRoom
+var no_waiting : int = 0
+var waiting_for_second_player : Account
 
 @onready var timer : Timer = $Timer
 
@@ -17,35 +20,48 @@ func _ready() -> void:
 	udp.listen(udp_port)
 	print("server is listening on port ", tcp_port)
 	randomize()
+	
+	sessions.resize(max_no_players)
+	waiting_for_authorization.resize(max_no_players)
 
 func _process(_delta : float) -> void:
 	while tcp.is_connection_available():
 		connect_new_session()
 	
-	for session in sessions:
+	var i : int = 0
+	while i < no_sessions:
+		var session := sessions[i]
 		var peer := session.tls
 		peer.poll()
 		var status : StreamPeerTLS.Status = peer.get_status()
 		if status == StreamPeerTLS.Status.STATUS_HANDSHAKING:
+			i += 1
 			continue
 		if status == StreamPeerTLS.STATUS_DISCONNECTED or status == StreamPeerTLS.STATUS_ERROR:
-			sessions.erase(session)
+			no_sessions -= 1
+			sessions[i] = sessions[no_sessions]
+			sessions[no_sessions] = null
 			continue
 		var bytes : int = peer.get_available_bytes()
 		while bytes > 0:
 			readTLS(session, bytes)
 			bytes = peer.get_available_bytes()
+		i += 1
 	
 	udp.poll()
 	while udp.is_connection_available():
 		var peer : PacketPeerUDP = udp.take_connection()
 		var packet : PackedByteArray = peer.get_packet()
-		for session in waiting_for_authorization:
+		i = 0
+		while i < no_waiting:
+			var session := waiting_for_authorization[i]
 			if session.host == peer.get_packet_ip() and session.udp_port == peer.get_packet_port():
 				if session.hmac_authorisation == packet:
 					session.tls.put_u8(Utils.MessageType.RESPONSE_OK)
 					session.udp = peer
-					waiting_for_authorization.erase(session)
+					no_waiting -= 1
+					waiting_for_authorization[i] = waiting_for_authorization[no_waiting]
+					waiting_for_authorization[no_waiting] = null
 					print("UDP connected")
 				else:
 					print("UDP authorisation failed")
@@ -53,6 +69,8 @@ func _process(_delta : float) -> void:
 					print("received: ", packet)
 					session.tls.put_u8(Utils.MessageType.ERROR_CANNOT_AUTHORISE_UDP)
 					peer.close()
+				break
+			i += 1
 
 func connect_new_session() -> Error:
 	var peer : StreamPeerTCP = tcp.take_connection()
@@ -74,12 +92,18 @@ func connect_new_session() -> Error:
 		print("Handshake interrupt error")
 		return ERR_CONNECTION_ERROR
 	
+	if no_sessions == max_no_players:
+		peer.put_u8(Utils.MessageType.NO_MORE_FREE_SEATS)
+		return ERR_OUT_OF_MEMORY
+	
+	peer.put_u8(Utils.MessageType.RESPONSE_OK)
+	
 	print("TCP connected")
 	
 	var tls : StreamPeerTLS = StreamPeerTLS.new()
 	var tls_err : Error
 	
-	tls_err = tls.accept_stream(peer, TLSOptions.server(load("res://Server/key.key"), load("res://Shared/cert.crt")))
+	tls_err = tls.accept_stream(peer, TLSOptions.server(load("res://Server/Main/key.key"), load("res://Shared/cert.crt")))
 	
 	if tls_err != OK:
 		print("TLS accept error: ", tls_err)
@@ -96,7 +120,8 @@ func connect_new_session() -> Error:
 		return ERR_CONNECTION_ERROR
 	
 	var session := Account.new(tls)
-	sessions.append(session)
+	sessions[no_sessions] = session
+	no_sessions += 1
 	
 	session.udp_port = tls.get_u16()
 	
@@ -107,7 +132,8 @@ func connect_new_session() -> Error:
 	packet.append_array(session.token)
 	packet.append_array(session.key)
 	tls.put_data(packet)
-	waiting_for_authorization.append(session)
+	waiting_for_authorization[no_waiting] = session
+	no_waiting += 1
 	
 	return OK
 
@@ -148,7 +174,7 @@ func readTLS(session : Account, bytes : int) -> Error:
 				return ERR_INVALID_DATA
 			session.login = login
 			var packet : PackedByteArray = [Utils.MessageType.SALT]
-			packet.append_array(err_info[3].to_ascii_buffer())
+			packet.append_array(err_info[3].to_ascii_buffer()) # to_ascii_buffer to delete
 			peer.put_data(packet)
 			session.id = err_info[1]
 			session.password = err_info[2]
@@ -171,10 +197,17 @@ func readTLS(session : Account, bytes : int) -> Error:
 			peer.put_u8(Utils.MessageType.RESPONSE_OK)
 		
 		Utils.MessageType.PREPARE_GAME:
-			if waiting_for_second_player == null:
-				waiting_for_second_player = GameRoom.new()
-				waiting_for_second_player.player1 = session
-				add_child(waiting_for_second_player)
+			if session.id == -1:
+				session.tls.put_u8(Utils.MessageType.ERROR_NOT_LOGGED_IN)
+			elif waiting_for_second_player == null:
+				waiting_for_second_player = session
+				session.tls.put_u8(Utils.MessageType.RESPONSE_OK)
+			else:
+				add_child(GameRoom.new(waiting_for_second_player, session))
+				session.tls.put_u8(Utils.MessageType.RESPONSE_OK)
+				waiting_for_second_player.tls.put_u8(Utils.MessageType.GAME_STARTED)
+				session.tls.put_u8(Utils.MessageType.GAME_STARTED)
+				waiting_for_second_player = null
 		
 		Utils.MessageType.JUST_STRING:
 			var msg : String = peer.get_string()
@@ -215,7 +248,7 @@ func create_account(login : String, password : String, salt : String) -> Utils.M
 		return Utils.MessageType.ERROR_INVALID_SALT
 
 func get_account_info(login : String) -> Array:
-	var p : float = randf()
+	var p : float = 0#randf()
 	if p <= 0.4:
 		return [Utils.MessageType.RESPONSE_OK, 1, "password", "placeholder"]
 		#[OK, id, hashed_password, salt]

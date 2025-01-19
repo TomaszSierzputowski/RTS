@@ -18,6 +18,7 @@ config/icon="res://icon.svg"
 [autoload]
 
 Client="*res://Client/Scripts/client.gd"
+Database="*res://Server/AccountSystem/SQLControler.gd"
 
 [dotnet]
 
@@ -69,3 +70,8 @@ add_unit={
 "events": [Object(InputEventMouseButton,"resource_local_to_scene":false,"resource_name":"","device":-1,"window_id":0,"command_or_control_autoremap":true,"alt_pressed":false,"shift_pressed":false,"button_mask":0,"position":Vector2(0, 0),"global_position":Vector2(0, 0),"factor":1.0,"button_index":2,"canceled":false,"pressed":false,"double_click":false,"script":null)
 ]
 }
+
+[rendering]
+
+renderer/rendering_method="gl_compatibility"
+renderer/rendering_method.mobile="gl_compatibility"

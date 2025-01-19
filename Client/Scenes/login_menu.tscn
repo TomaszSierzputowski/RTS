@@ -1,65 +1,119 @@
-[gd_scene load_steps=2 format=3 uid="uid://gpsunhufp12f"]
+[gd_scene load_steps=2 format=3 uid="uid://cmj2s5jkbg3i6"]
 
 [ext_resource type="Script" path="res://Client/Scripts/login_menu.gd" id="1_rnqx1"]
 
-[node name="LoginMenu" type="Node2D"]
+[node name="EntryMenu" type="Node2D"]
 script = ExtResource("1_rnqx1")
 
-[node name="HBoxContainer" type="HBoxContainer" parent="."]
-offset_left = 381.0
-offset_top = 50.0
-offset_right = 773.0
-offset_bottom = 105.0
+[node name="Node" type="Node" parent="."]
+
+[node name="welcome_label" type="Label" parent="Node"]
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -152.5
+offset_top = 100.0
+offset_right = 152.5
+offset_bottom = 149.0
+grow_horizontal = 2
+text = "Welcome to the world of Pumbosaurus! 
+Do you want to join us?"
+horizontal_alignment = 1
+
+[node name="buttons_hbox" type="HBoxContainer" parent="Node"]
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -64.5
+offset_top = 200.0
+offset_right = 64.5
+offset_bottom = 231.0
+grow_horizontal = 2
+theme_override_constants/separation = 100
+
+[node name="sign_in_button" type="Button" parent="Node/buttons_hbox"]
+layout_mode = 2
+size_flags_horizontal = 4
+focus_neighbor_left = NodePath("../sign_up_button")
+text = "Sign in"
+
+[node name="sign_up_button" type="Button" parent="Node/buttons_hbox"]
+layout_mode = 2
+focus_neighbor_right = NodePath("../sign_in_button")
+text = "Sign up"
+
+[node name="data_vbox" type="VBoxContainer" parent="Node"]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -125.0
+offset_top = -81.5
+offset_right = 125.0
+offset_bottom = 81.5
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 20
+
+[node name="data_hbox" type="HBoxContainer" parent="Node/data_vbox"]
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+theme_override_constants/separation = 65
+
+[node name="login_vbox" type="VBoxContainer" parent="Node/data_vbox/data_hbox"]
+visible = false
+layout_mode = 2
 size_flags_horizontal = 4
 size_flags_vertical = 4
 
-[node name="login_label" type="Label" parent="HBoxContainer"]
+[node name="login_username" type="LineEdit" parent="Node/data_vbox/data_hbox/login_vbox"]
+custom_minimum_size = Vector2(100, 0)
 layout_mode = 2
-theme_override_colors/font_color = Color(0.772549, 0, 0.415686, 1)
-theme_override_font_sizes/font_size = 40
-text = "Welcome sweetie <3"
-
-[node name="VBoxContainer2" type="VBoxContainer" parent="."]
-offset_left = 425.0
-offset_top = 200.0
-offset_right = 725.0
-offset_bottom = 311.0
-
-[node name="username_field" type="LineEdit" parent="VBoxContainer2"]
-layout_mode = 2
-size_flags_vertical = 4
-theme_override_font_sizes/font_size = 20
 text = "username"
-metadata/_edit_use_anchors_ = true
 
-[node name="password_field" type="LineEdit" parent="VBoxContainer2"]
+[node name="login_password" type="LineEdit" parent="Node/data_vbox/data_hbox/login_vbox"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 20
 text = "password"
 secret = true
 
-[node name="HBoxContainer2" type="HBoxContainer" parent="."]
-layout_direction = 2
-offset_left = 455.0
-offset_top = 280.0
-offset_right = 680.0
-offset_bottom = 311.0
-theme_override_constants/separation = 100
-
-[node name="login_button" type="Button" parent="HBoxContainer2"]
+[node name="login_go_button" type="Button" parent="Node/data_vbox/data_hbox/login_vbox"]
 layout_mode = 2
-focus_neighbor_left = NodePath("../register_button")
-focus_neighbor_top = NodePath("../../VBoxContainer2/password_field")
-focus_neighbor_bottom = NodePath("../../VBoxContainer2/username_field")
-text = "Sign in
-"
+text = "Go"
 
-[node name="register_button" type="Button" parent="HBoxContainer2"]
+[node name="register_vbox" type="VBoxContainer" parent="Node/data_vbox/data_hbox"]
+visible = false
 layout_mode = 2
-focus_neighbor_top = NodePath("../../VBoxContainer2/password_field")
-focus_neighbor_right = NodePath("../login_button")
-focus_neighbor_bottom = NodePath("../../VBoxContainer2/username_field")
-text = "Sign up"
+size_flags_horizontal = 4
+size_flags_vertical = 4
 
-[connection signal="pressed" from="HBoxContainer2/login_button" to="." method="_on_login_button_pressed"]
-[connection signal="pressed" from="HBoxContainer2/register_button" to="." method="_on_register_button_pressed"]
+[node name="register_username" type="LineEdit" parent="Node/data_vbox/data_hbox/register_vbox"]
+custom_minimum_size = Vector2(100, 0)
+layout_mode = 2
+text = "username"
+
+[node name="register_password1" type="LineEdit" parent="Node/data_vbox/data_hbox/register_vbox"]
+layout_mode = 2
+text = "password"
+secret = true
+
+[node name="register_password2" type="LineEdit" parent="Node/data_vbox/data_hbox/register_vbox"]
+layout_mode = 2
+text = "password"
+secret = true
+
+[node name="register_go_button" type="Button" parent="Node/data_vbox/data_hbox/register_vbox"]
+layout_mode = 2
+text = "Go"
+
+[node name="label_error" type="Label" parent="Node/data_vbox"]
+visible = false
+layout_mode = 2
+text = "hehehe"
+horizontal_alignment = 1
+
+[connection signal="pressed" from="Node/buttons_hbox/sign_in_button" to="." method="_on_sign_in_button_pressed"]
+[connection signal="pressed" from="Node/buttons_hbox/sign_up_button" to="." method="_on_sign_up_button_pressed"]
+[connection signal="pressed" from="Node/data_vbox/data_hbox/login_vbox/login_go_button" to="." method="_on_login_go_button_pressed"]
+[connection signal="pressed" from="Node/data_vbox/data_hbox/register_vbox/register_go_button" to="." method="_on_register_go_button_pressed"]
