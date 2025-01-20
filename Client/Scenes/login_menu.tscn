@@ -48,10 +48,10 @@ anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -125.0
-offset_top = -81.5
-offset_right = 125.0
-offset_bottom = 81.5
+offset_left = -147.5
+offset_top = -74.0
+offset_right = 147.5
+offset_bottom = 143.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_constants/separation = 20
@@ -68,14 +68,20 @@ layout_mode = 2
 size_flags_horizontal = 4
 size_flags_vertical = 4
 
+[node name="login_label" type="Label" parent="Node/data_vbox/data_hbox/login_vbox"]
+layout_mode = 2
+text = "login"
+
 [node name="login_username" type="LineEdit" parent="Node/data_vbox/data_hbox/login_vbox"]
 custom_minimum_size = Vector2(100, 0)
 layout_mode = 2
-text = "username"
+
+[node name="password_label" type="Label" parent="Node/data_vbox/data_hbox/login_vbox"]
+layout_mode = 2
+text = "password"
 
 [node name="login_password" type="LineEdit" parent="Node/data_vbox/data_hbox/login_vbox"]
 layout_mode = 2
-text = "password"
 secret = true
 
 [node name="login_go_button" type="Button" parent="Node/data_vbox/data_hbox/login_vbox"]
@@ -88,19 +94,28 @@ layout_mode = 2
 size_flags_horizontal = 4
 size_flags_vertical = 4
 
+[node name="login_label" type="Label" parent="Node/data_vbox/data_hbox/register_vbox"]
+layout_mode = 2
+text = "login"
+
 [node name="register_username" type="LineEdit" parent="Node/data_vbox/data_hbox/register_vbox"]
 custom_minimum_size = Vector2(100, 0)
 layout_mode = 2
-text = "username"
+
+[node name="password_label" type="Label" parent="Node/data_vbox/data_hbox/register_vbox"]
+layout_mode = 2
+text = "password"
 
 [node name="register_password1" type="LineEdit" parent="Node/data_vbox/data_hbox/register_vbox"]
 layout_mode = 2
-text = "password"
 secret = true
+
+[node name="password_label2" type="Label" parent="Node/data_vbox/data_hbox/register_vbox"]
+layout_mode = 2
+text = "repeat password"
 
 [node name="register_password2" type="LineEdit" parent="Node/data_vbox/data_hbox/register_vbox"]
 layout_mode = 2
-text = "password"
 secret = true
 
 [node name="register_go_button" type="Button" parent="Node/data_vbox/data_hbox/register_vbox"]

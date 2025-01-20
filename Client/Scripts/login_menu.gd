@@ -42,20 +42,16 @@ func _on_login_go_button_pressed() -> void:
 	var username = login_username.text
 	var password = login_password.text
 	
-	if Database.check_password(password) and Database.check_username(username):
+	if check_password(password) and check_username(username):
 		var response = await Client.sign_in(username, password)
 		
 		if response == Utils.MessageType.RESPONSE_OK:
 			login_attempt.emit(username, password)
 			get_tree().change_scene_to_file("res://Client/Scenes/welcome_menu.tscn")
 		else:
-			
 			update_label(str(response))
 			label_error.visible = true
 	else:
-		#var data = Database.get_account_info(username)
-		#print(data)
-		#Database.delete_account(username)
 		update_label("Wrong data")
 		label_error.visible = true
 
@@ -64,20 +60,43 @@ func _on_register_go_button_pressed() -> void:
 	var password1 = register_password1.text
 	var password2 = register_password2.text
 	
-	if Database.same_passwords(password1, password2):
-		if Database.check_password(password1) and Database.check_password(password2) and Database.check_username(username):
+	if password1 == password2:
+		if check_password(password1) and check_password(password2) and check_username(username):
 			var response = await Client.sign_up(username, password1, "placeholder") 
 			if response == Utils.MessageType.RESPONSE_OK:
 				register_attempt.emit(username, password1, password2)
-				#get_tree().change_scene_to_file("res://Client/Scenes/welcome_menu.tscn")
-				#TODO: label update
+				update_label("Now you are in our database hehe :O Don't be shy- sign in.")
 			else:
-				#Database.create_account(username,password1, "xdxdxdxdxdxd")
 				update_label(str(response))
 				label_error.visible = true
 		else:
-			update_label("Wrong data")
+			update_label("Wrong data!")
 			label_error.visible = true
 	else:
-		update_label("drop database players")
+		update_label("Passwords have to be the same!")
 		label_error.visible = true
+
+func _is_valid_text(text: String) -> bool:
+	var regex = RegEx.new()
+	regex.compile("^[a-zA-Z0-9_\\-\\.\\!\\#\\$\\&]+$")
+	return regex.search(text) != null
+	
+func check_username(username: String) -> bool:
+	username = username.strip_edges()
+	if username.length() < 1 or username.length() > 20:
+		print("Invalid username: length must be between 1 and 20 characters.")
+		return false
+	if not _is_valid_text(username):
+		print("Invalid username: contains invalid characters.")
+		return false
+	return true
+	
+func check_password(password: String) -> bool:
+	password = password.strip_edges()
+	if password.length() < 8 or password.length() > 20:
+		print("Invalid password: length must be between 3 and 20 characters.")
+		return false
+	if not _is_valid_text(password):
+		print("Invalid password: contains invalid characters.")
+		return false
+	return true
