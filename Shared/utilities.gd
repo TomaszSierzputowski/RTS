@@ -69,8 +69,25 @@ enum MessageType {
 }
 
 enum EntityType {
-	CHARACTER = 0x00,
+	CHARACTER = 0xfe,
 	BUILDING = 0xff,
+	
+	
+	MAIN_BASE = 0x00,
+	MINE_NO = 0x01,
+	MINE_YES = 0x02,
+	TRIANGLE_NO = 0x03,
+	TRIANGLE_YES = 0x04,
+	SQUARE_NO = 0x05,
+	SQUARE_YES = 0x06,
+	PENTAGON_NO = 0x07,
+	PENTAGON_YES = 0x08,
+	
+	
+	WORKER = 0x10,
+	TRIANGLE = 0x11,
+	SQUARE = 0x12,
+	PENTAGON = 0x13
 }
 
 const salt_len := 11 #TBA
