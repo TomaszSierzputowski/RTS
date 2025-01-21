@@ -46,6 +46,9 @@ enum MessageType {
 	ERROR_CANNOT_MOVE = 0x8d,
 	ATTACK = 0x83,
 	ERROR_CANNOT_ATTACK = 0x8c,
+	UPGRADE_SPEED = 0x84,
+	UPGRADE_HEALTH = 0x85,
+	UPGRADE_DAMAGE = 0x86,
 	ERROR_INVALID_HMAC_ERROR = 0x88,
 	
 	# Server in game info messages
@@ -61,6 +64,10 @@ enum MessageType {
 	DIED_DESTROYED = 0x99,
 	DIED_DESTROYED_OPP = 0x9a,
 	DISAPPEARED = 0x9b,
+	UPGRADED_0 = 0x9c,
+	UPGRADED_SPEED = 0x9c,
+	UPGRADED_HEALTH = 0x9d,
+	UPGRADED_DAMAGE = 0x9e,
 	ERROR_CHANGE_OF_NONEXISTING_ENTITY = 0x9f,
 	
 	# Debug messages
@@ -85,6 +92,7 @@ enum EntityType {
 	
 	
 	WORKER = 0x10,
+	CHARACTER_0 = 0x11,
 	TRIANGLE = 0x11,
 	SQUARE = 0x12,
 	PENTAGON = 0x13

@@ -7,10 +7,16 @@ class Change:
 	var code : PackedByteArray
 	var significance : int
 	
-	func _init(_id : int) -> void:
-		code.resize(8)
-		code.encode_u8(1, _id)
-		significance = 0
+	func _init(id : int, upgrade : int = -1) -> void:
+		if (upgrade == -1):
+			code.resize(8)
+			code.encode_u8(1, id)
+			significance = 0
+		else:
+			code.resize(3)
+			code.encode_u8(0, upgrade)
+			code.encode_u8(1, id)
+			significance = 0
 
 var quick_access_changes : Array[Change]
 var changes : Array[Change]
@@ -18,12 +24,15 @@ var no_changes : int = 0
 
 func _init(_main_player : int) -> void:
 	main_player = _main_player
-	quick_access_changes.resize(512)
+	quick_access_changes.resize(521)
 	for i in range(256):
 		quick_access_changes[i] = Change.new(i)
 	for i in range(256):
 		quick_access_changes[256 + i] = Change.new(i)
-	changes.resize(512)
+	for i in range(3):
+		for j in range(3):
+			quick_access_changes[512 + 3 * i + j] = Change.new(i, j)
+	changes.resize(521)
 
 func extract_changes() -> PackedByteArray:
 	var packet : PackedByteArray
@@ -221,3 +230,12 @@ func hp_changed(player : int, id : int, new_hp : int, change_amount : int) -> vo
 			change.code.encode_u8(0, Utils.MessageType.HP_CHANGE)
 		else:
 			change.code.encode_u8(0, Utils.MessageType.HP_CHANGE_OPP)
+
+func upgraded(upgrade_type : Utils.MessageType, entity_type : Utils.EntityType, level : int) -> void:
+	var idx : int = 512 + 3 * (entity_type - Utils.EntityType.CHARACTER_0) + upgrade_type - Utils.MessageType.UPGRADED_0
+	var change : Change = quick_access_changes[idx]
+	change.code.encode_u8(2, level)
+	if change.significance == 0:
+		changes[no_changes] = change
+		no_changes += 1
+	change.significance = 7

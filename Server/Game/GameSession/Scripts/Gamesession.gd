@@ -33,6 +33,9 @@ var game_position_changed : Array[Signal] = [game_pc_sig0, game_pc_sig1]
 signal game_hc_sig0(player : int, id : int, hp : int)
 signal game_hc_sig1(player : int, id : int, hp : int)
 var game_hp_changed : Array[Signal] = [game_hc_sig0, game_hc_sig1]
+signal game_u_sig0(upgrade_type : Utils.MessageType, character_type : Utils.EntityType, level : int)
+signal game_u_sig1(upgrade_type : Utils.MessageType, character_type : Utils.EntityType, level : int)
+var game_upgraded : Array[Signal] = [game_u_sig0, game_u_sig1]
 
 # Inicjalizacja sesji gry
 func _ready():
