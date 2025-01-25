@@ -87,6 +87,7 @@ signal summon_build(player : int, id : int, type : Utils.EntityType, position : 
 signal appear(id : int, type : Utils.EntityType, position : Vector2, health : int)
 signal die_destroy(player : int, id : int)
 signal disappear(id : int)
+signal upgraded(upgrade_type : Utils.MessageType, character_type : Utils.EntityType, level : int)
 # w razie problemów spróbować wyrzucać wszystkie pakiety prócz ostatniego
 # w razie przeskoków spróbować dodać id pakietom od serwera i ignorować docierające w złej kolejności
 func readUDP() -> Error:
@@ -149,6 +150,14 @@ func readUDP() -> Error:
 					return ERR_INVALID_DATA
 				die_destroy.emit(packet[i+1])
 				i += 2
+			Utils.MessageType.UPGRADED_SPEED,\
+			Utils.MessageType.UPGRADED_HEALTH,\
+			Utils.MessageType.UPGRADED_DAMAGE:
+				if i + 2 >= packet_size:
+					print("Too few bytes for disappeared")
+					return ERR_INVALID_DATA
+				upgraded.emit(packet[i], packet[i+1], packet[i+2])
+				i += 3
 			Utils.MessageType.POS_CHANGE:
 				i += 1
 				if i >= packet_size:
@@ -312,6 +321,23 @@ func attack(characters : PackedByteArray, target : int) -> void:
 	packet.encode_u8(0, Utils.MessageType.ATTACK)
 	packet.encode_u8(1, target)
 	packet.append_array(characters)
+	send_udp_packet(packet)
+
+# alternatywne wersje move oraz attack, które mogą zwiększyć optymalizację
+#func move(characters : PackedByteArray, no_characters : int, position : Vector2) -> void:
+	#characters.encode_s16(no_characters + 1, roundi(position.x * 4))
+	#characters.encode_s16(no_characters + 3, roundi(position.y * 4))
+	#send_udp_packet(characters.slice(0, no_characters + 5))
+
+#func attack(characters : PackedByteArray, no_characters : int, target : int) -> void:
+	#characters.encode_u8(no_characters + 1, target)
+	#send_udp_packet(characters.slice(0, no_characters + 2))
+
+func upgrade(upgrade_type : Utils.MessageType, entity_type : Utils.EntityType) -> void:
+	var packet : PackedByteArray
+	packet.resize(2)
+	packet.encode_u8(0, upgrade_type)
+	packet.encode_u8(1, entity_type)
 	send_udp_packet(packet)
 
 #Waiting for responses
