@@ -13,6 +13,9 @@ var combatUnit = [preload("res://Server/Game/Units/Player1/Scenes/CombatUnit_1.t
 var workerunit = [preload("res://Server/Game/Units/Player1/Scenes/WorkerUnit_1.tscn"), preload("res://Server/Game/Units/Player2/Scenes/WorkerUnit_2.tscn")]
 var building = [preload("res://Server/Game/Units/Player1/Scenes/Building_1.tscn"), preload("res://Server/Game/Units/Player2/Scenes/Building_2.tscn")]
 
+var BaseBuilding = preload("res://Server/Game/Units/Player1/Building/Scenes/BaseBuilding_1.tscn")
+var workerUnit = preload("res://Server/Game/Units/Player1/Units/Scenes/WorkerUnit_1.tscn")
+
 var players : Array[Player]
 
 signal game_sb_sig0(player : int, id : int, entity : Utils.EntityType, position : Vector2)
@@ -33,9 +36,6 @@ var game_position_changed : Array[Signal] = [game_pc_sig0, game_pc_sig1]
 signal game_hc_sig0(player : int, id : int, hp : int)
 signal game_hc_sig1(player : int, id : int, hp : int)
 var game_hp_changed : Array[Signal] = [game_hc_sig0, game_hc_sig1]
-signal game_u_sig0(upgrade_type : Utils.MessageType, character_type : Utils.EntityType, level : int)
-signal game_u_sig1(upgrade_type : Utils.MessageType, character_type : Utils.EntityType, level : int)
-var game_upgraded : Array[Signal] = [game_u_sig0, game_u_sig1]
 
 # Inicjalizacja sesji gry
 func _ready():
@@ -64,13 +64,16 @@ func summon(player_num : int, character_type : Utils.EntityType, position : Vect
 	var unit : Node
 	match character_type:
 		Utils.EntityType.CHARACTER:
-			unit = workerunit[player_num].instantiate()
+			#unit = workerunit[player_num].instantiate()
+			unit = workerUnit.instantiate()
+			unit.player = players[player_num]
+		Utils.EntityType.BUILDING:
+			#unit = building[player_num].instantiate()
+			unit = BaseBuilding.instantiate()
 # Funkcja dodająca jednostkę do mapy
 #func add_unit_to_map(unit: Node, player_num: int, position: Vector2):
-	var player = players[player_num]
-	print(position)
-	if not is_valid(position) and is_area_clear(position):
-		print("valid and clear")
+	if unit:
+		var player = players[player_num]
 		unit.position = position
 		player.add_unit(unit)
 		if unit in player.units:
@@ -94,17 +97,15 @@ func get_cell_id(point: Vector2):
 	return -1
 	
 func is_valid(point: Vector2):
-	#temp
-	return false
 	
 	var tilemap = game_map.get_node("TileMapLayer")
 	if tilemap:
-		#point = tilemap.local_to_map(point)
+		point =tilemap.local_to_map(point)
+		print(point)
 		var cell_id = tilemap.get_cell_source_id(point)
-		print("cell_id: ", cell_id)
+		print(cell_id)
 		if cell_id != 4 and cell_id != 1 and cell_id != -1:
 			return false
-	print("is_invalid")
 	return true
 
 func is_area_clear(point: Vector2) -> bool:
@@ -114,60 +115,39 @@ func is_area_clear(point: Vector2) -> bool:
 			if child.position.distance_to(new_point) <= 50 :
 				return false
 		if child is CharacterBody2D :
-			if child.position.distance_to(new_point) <= 15 :
+			if child.position.distance_to(new_point) <= 25 :
 				return false
-	print("area_not_clear")
 	return true
 	
-#func _input(event):
-	#if event is InputEventMouseButton and event.pressed:
-		#if event.button_index == MOUSE_BUTTON_LEFT:
-			#var target_position = game_map.get_global_mouse_position()
-			#target_position.x+=2000
-			#target_position.y-=7000
-			#if not is_valid(target_position) and is_area_clear(target_position):
-				#var unit_instance = combatUnit_1.instantiate()
-				#add_unit_to_map(unit_instance,player1,target_position)
-#
-		#elif event.button_index == MOUSE_BUTTON_RIGHT:
-			#var target_position = game_map.get_global_mouse_position()
-			#target_position.x+=2000
-			#target_position.y-=7000
-			#if not is_valid(target_position) and is_area_clear(target_position):
-				#var unit_instance = combatUnit_2.instantiate()
-				#add_unit_to_map(unit_instance,player2,target_position)
-#
-	#if event is InputEventKey:
-		#if Input.is_action_just_pressed("building_1"):
-			#var target_position = game_map.get_global_mouse_position()
-			#target_position.x+=2000
-			#target_position.y-=7000
-			#if not is_valid(target_position) and is_area_clear(target_position) :
-				#var unit_instance = building_1.instantiate()
-				#add_unit_to_map(unit_instance,player1,target_position)
-		#elif Input.is_action_just_pressed("Building_2"):
-			#var target_position = game_map.get_global_mouse_position()
-			#target_position.x+=2000
-			#target_position.y-=7000
-			#if not is_valid(target_position) and is_area_clear(target_position):
-				#var unit_instance = building_2.instantiate()
-				#add_unit_to_map(unit_instance,player2,target_position)
-		#elif Input.is_action_just_pressed("worker_1"):
-			#var target_position = game_map.get_global_mouse_position()
-			#target_position.x+=2000
-			#target_position.y-=7000
-			#if not is_valid(target_position) and is_area_clear(target_position):
-				#var unit_instance = workerunit_1.instantiate()
-				#unit_instance.player = player1
-				#add_unit_to_map(unit_instance,player1,target_position)
-		#elif Input.is_action_just_pressed("worker_2"):
-			#var target_position = game_map.get_global_mouse_position()
-			#target_position.x+=2000
-			#target_position.y-=7000
-			#if not is_valid(target_position) and is_area_clear(target_position):
-				#var unit_instance = workerunit_2.instantiate()
-				#unit_instance.player = player2
-				#add_unit_to_map(unit_instance,player2,target_position)
+func _input(event):
+	if event is InputEventMouseButton and event.pressed:
+		if event.button_index == MOUSE_BUTTON_LEFT:
+			var target_position = game_map.get_global_mouse_position()
+			if not is_valid(target_position) and is_area_clear(target_position):
+				summon(0,Utils.EntityType.CHARACTER,target_position)
+
+		elif event.button_index == MOUSE_BUTTON_RIGHT:
+			var target_position = game_map.get_global_mouse_position()
+			if not is_valid(target_position) and is_area_clear(target_position):
+				summon(1,Utils.EntityType.CHARACTER,target_position)
+
+	if event is InputEventKey:
+		if Input.is_action_just_pressed("building_1"):
+			var target_position = game_map.get_global_mouse_position()
+			if not is_valid(target_position) and is_area_clear(target_position) :
+				summon(0,Utils.EntityType.BUILDING,target_position)
+		elif Input.is_action_just_pressed("building_2"):
+			var target_position = game_map.get_global_mouse_position()
+			if not is_valid(target_position) and is_area_clear(target_position):
+				summon(1,Utils.EntityType.BUILDING,target_position)
+		elif Input.is_action_just_pressed("worker_1"):
+			var target_position = game_map.get_global_mouse_position()
+			if not is_valid(target_position) and is_area_clear(target_position):
+				summon(0,Utils.EntityType.CHARACTER,target_position)
+		elif Input.is_action_just_pressed("worker_2"):
+			var target_position = game_map.get_global_mouse_position()
+			if not is_valid(target_position) and is_area_clear(target_position):
+				summon(0,Utils.EntityType.CHARACTER,target_position)
 
 # Przykład użycia:
 # var session = GameSession.new()

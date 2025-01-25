@@ -94,6 +94,7 @@ func _on_recalculate_timer_timeout() -> void:
 	recalc_path()
 
 func _on_agrro_range_area_entered(area: Area2D) -> void:
+	print(area.owner)
 	if area.owner not in targeted_character:
 		targeted_character.append(area.owner)
 

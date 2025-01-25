@@ -31,8 +31,6 @@ func _init(player1 : Account, player2 : Account) -> void:
 	session.game_position_changed[1].connect(changes[1].position_changed)
 	session.game_hp_changed[0].connect(changes[0].hp_changed)
 	session.game_hp_changed[1].connect(changes[1].hp_changed)
-	session.game_upgraded[0].connect(changes[0].upgraded)
-	session.game_upgraded[1].connect(changes[1].upgraded)
 
 func _ready() -> void:
 	print("Game started")

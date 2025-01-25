@@ -4,7 +4,7 @@
 [ext_resource type="Texture2D" uid="uid://k8g00nptdicw" path="res://icon.svg" id="2_jwpig"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_v8gtr"]
-radius = 8.0
+radius = 11.0
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_pnhur"]
 radius = 8.0
@@ -13,15 +13,15 @@ radius = 8.0
 radius = 250.0
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_rlxfr"]
+radius = 11.0
 
-[node name="WorkerUnit_1" type="CharacterBody2D" node_paths=PackedStringArray("nav_agent")]
+[node name="WorkerUnit_1" type="CharacterBody2D"]
 collision_layer = 2
 collision_mask = 7
 motion_mode = 1
 wall_min_slide_angle = 0.0
 safe_margin = 5.0
 script = ExtResource("1_ij87c")
-nav_agent = NodePath("Navigation/NavigationAgent2D")
 
 [node name="Sprite2D" type="Sprite2D" parent="."]
 modulate = Color(0.913725, 0, 1, 1)
@@ -37,6 +37,9 @@ metadata/_edit_lock_ = true
 
 [node name="NavigationAgent2D" type="NavigationAgent2D" parent="Navigation"]
 avoidance_enabled = true
+avoidance_layers = 7
+avoidance_mask = 7
+debug_enabled = true
 
 [node name="RecalculateTimer" type="Timer" parent="Navigation"]
 autostart = true
@@ -61,6 +64,7 @@ shape = SubResource("CircleShape2D_xpuhk")
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Area2D2"]
 shape = SubResource("CircleShape2D_rlxfr")
 
+[connection signal="velocity_computed" from="Navigation/NavigationAgent2D" to="." method="_on_navigation_agent_2d_velocity_computed"]
 [connection signal="timeout" from="Navigation/RecalculateTimer" to="." method="_on_recalculate_timer_timeout"]
 [connection signal="body_entered" from="connectionZone" to="." method="_on_connection_zone_body_entered"]
 [connection signal="body_exited" from="connectionZone" to="." method="_on_connection_zone_body_exited"]

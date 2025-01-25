@@ -1,0 +1,42 @@
+[gd_scene load_steps=6 format=3 uid="uid://c62g3id85sc27"]
+
+[ext_resource type="Script" path="res://Server/Game/Units/Player1/Building/Scripts/base_building_1.gd" id="1_qpwos"]
+[ext_resource type="Texture2D" uid="uid://k8g00nptdicw" path="res://icon.svg" id="2_0ewoy"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_ft048"]
+size = Vector2(125, 125)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_6jcmd"]
+size = Vector2(125, 125)
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_dwum3"]
+radius = 400.0
+
+[node name="BaseBuilding" type="StaticBody2D"]
+script = ExtResource("1_qpwos")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+texture = ExtResource("2_0ewoy")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("RectangleShape2D_ft048")
+
+[node name="StaticBody2D" type="Area2D" parent="."]
+collision_layer = 2
+collision_mask = 7
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="StaticBody2D"]
+shape = SubResource("RectangleShape2D_6jcmd")
+
+[node name="Area2D" type="Area2D" parent="."]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Area2D"]
+shape = SubResource("CircleShape2D_dwum3")
+
+[node name="Timer" type="Timer" parent="."]
+wait_time = 3.0
+autostart = true
+
+[connection signal="body_entered" from="Area2D" to="." method="_on_area_2d_body_entered"]
+[connection signal="body_exited" from="Area2D" to="." method="_on_area_2d_body_exited"]
+[connection signal="timeout" from="Timer" to="." method="_on_timer_timeout"]
