@@ -88,11 +88,30 @@ func _input(event: InputEvent) -> void:
 func _ready():
 	resource_amount = 200
 	player_color = true
-	pass
 	
+	Client.summon_build.connect(summon_build)
+	Client.set_resources.connect(set_resource_amount)
+	pass
+
+func set_resource_amount(val : int) -> void:
+	resource_amount = val
+
 func get_resource_amount() -> int:
 	return resource_amount
-	
+
+func summon_build(player : int, id : int, type : Utils.EntityType, position : Vector2, health : int) -> void:
+	match type:
+		Utils.EntityType.MAIN_BASE:
+			add_main_base(position, player == 0)
+		Utils.EntityType.MINE_YES:
+			add_building_2(position, id, player == 0, 1)
+		Utils.EntityType.TRIANGLE_YES:
+			add_building_2(position, id, player == 0, 3)
+		Utils.EntityType.SQUARE_YES:
+			add_building_2(position, id, player == 0, 4)
+		Utils.EntityType.PENTAGON_YES:
+			add_building_2(position, id, player == 0, 2)
+
 func add_unit1(position: Vector2, id: int, color: bool) -> void:
 	var new_unit = unit_1.instantiate()
 	new_unit.position = position
@@ -262,7 +281,7 @@ func add_building_2(position: Vector2, id: int, color: bool, unit_type: int) -> 
 	new_building.init_building(id, color, position, unit_type)
 	add_child(new_building)
 	# zamiast zmniejszania ilosci surowca powinno byc wysłanie sygnału do serwera zeby zmniejszyc
-	resource_amount -= building_2_price
+	#resource_amount -= building_2_price
 	print("added building succesfully")
 	id_num += 1
 	
@@ -363,7 +382,8 @@ func check_and_add_main_base_on_pressed(event):
 			var coords = $Map.get_global_mouse_position()
 			var coords_window = event.global_position
 			if coords_window.x < offset:
-				add_main_base(coords, player_color)
+				#add_main_base(coords, player_color)
+				Client.build(Utils.EntityType.MAIN_BASE, coords)
 			base_exists = true
 		else:
 			print("you do not have enough resource")
@@ -389,14 +409,18 @@ func check_and_add_building_2_on_pressed(event, unit_type):
 			var coords = $Map.get_global_mouse_position()
 			var coords_window = event.global_position
 			if coords_window.x < offset:
-				add_building_2(coords, id_num, player_color, unit_type)
+				#add_building_2(coords, id_num, player_color, unit_type)
 				if unit_type == 1:
+					Client.build(Utils.EntityType.MINE_YES, coords);
 					unit_1_base_exists = true
 				elif unit_type == 2:
+					Client.build(Utils.EntityType.PENTAGON_YES, coords);
 					unit_2_base_exists = true
 				elif unit_type == 3:
+					Client.build(Utils.EntityType.TRIANGLE_YES, coords);
 					unit_3_base_exists = true
 				elif unit_type == 4:
+					Client.build(Utils.EntityType.SQUARE_YES, coords);
 					unit_4_base_exists = true
 		else:
 			print("you do not have enough resource")

@@ -5,7 +5,7 @@ class_name Player
 # Lista jednostek gracza
 var Base: BaseBuilding
 var units: Array = []
-var resources: int = 1000
+var resources: int = 1000000
 
 var BaseBuildingCost: int = 500
 var FastUnitFacotryCost: int = 100
@@ -20,6 +20,9 @@ var unlocked_units: Array = ["BaseBuilding"]
 
 # Funkcja dodająca jednostkę do gracza
 func add_unit(unit: Node):
+	units.append(unit)
+	return
+	
 	if unit.name.substr(0,"BaseBuilding".length()) == "BaseBuilding" and "BaseBuilding" in unlocked_units and resources - BaseBuildingCost >= 0:
 		resources -= BaseBuildingCost
 		units.append(unit)

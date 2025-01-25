@@ -76,7 +76,7 @@ func readUDP(player : int) -> Utils.MessageType:
 				return Utils.MessageType.ERROR_TO_FEW_BYTES
 			var building_type := packet.decode_u8(1) as Utils.EntityType
 			var position := Vector2(0.25 * packet.decode_s16(2), 0.25 * packet.decode_s16(4))
-			game_build(player, building_type, position)
+			session.summon(player, building_type, position)
 		
 		Utils.MessageType.SUMMON:
 			if packet_size < 6:
@@ -131,4 +131,4 @@ func game_attack(player : int, ids : PackedByteArray, target : int) -> void:
 	print("Player ", player, " attacked with ", ids, " opponent's ", target)
 
 func game_get_resource(player : int) -> int:
-	return 0
+	return 275

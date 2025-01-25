@@ -14,6 +14,10 @@ var workerunit = [preload("res://Server/Game/Units/Player1/Scenes/WorkerUnit_1.t
 var building = [preload("res://Server/Game/Units/Player1/Scenes/Building_1.tscn"), preload("res://Server/Game/Units/Player2/Scenes/Building_2.tscn")]
 
 var BaseBuilding = preload("res://Server/Game/Units/Player1/Building/Scenes/BaseBuilding_1.tscn")
+var mineBuilding = preload("res://Server/Game/Units/Player1/Building/Scenes/MineBuilding_1.tscn")
+var triangleBuilding = preload("res://Server/Game/Units/Player1/Building/Scenes/FastUnitFactory_1.tscn")
+var squareBuilding = preload("res://Server/Game/Units/Player1/Building/Scenes/HeavyUnitFactory_1.tscn")
+var pentagonBuilding = preload("res://Server/Game/Units/Player1/Building/Scenes/StandardUnitFactory_1.tscn")
 var workerUnit = preload("res://Server/Game/Units/Player1/Units/Scenes/WorkerUnit_1.tscn")
 
 var players : Array[Player]
@@ -63,16 +67,29 @@ func load_map():
 func summon(player_num : int, character_type : Utils.EntityType, position : Vector2) -> void:
 	var unit : Node
 	match character_type:
-		Utils.EntityType.CHARACTER:
+		Utils.EntityType.WORKER:
 			#unit = workerunit[player_num].instantiate()
 			unit = workerUnit.instantiate()
 			unit.player = players[player_num]
-		Utils.EntityType.BUILDING:
+		Utils.EntityType.MAIN_BASE:
 			#unit = building[player_num].instantiate()
 			unit = BaseBuilding.instantiate()
+		Utils.EntityType.MINE_YES:
+			#unit = building[player_num].instantiate()
+			unit = mineBuilding.instantiate()
+		Utils.EntityType.TRIANGLE_YES:
+			#unit = building[player_num].instantiate()
+			unit = triangleBuilding.instantiate()
+		Utils.EntityType.SQUARE_YES:
+			#unit = building[player_num].instantiate()
+			unit = squareBuilding.instantiate()
+		Utils.EntityType.PENTAGON_YES:
+			#unit = building[player_num].instantiate()
+			unit = pentagonBuilding.instantiate()
 # Funkcja dodająca jednostkę do mapy
 #func add_unit_to_map(unit: Node, player_num: int, position: Vector2):
 	if unit:
+		print("summoned: ", character_type)
 		var player = players[player_num]
 		unit.position = position
 		player.add_unit(unit)
