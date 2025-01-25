@@ -100,8 +100,38 @@ func get_account_info(username: String) -> Array:
 	
 	return [Utils.MessageType.RESPONSE_OK, user_data["id"], user_data["password"], user_data["salt"]]
 
+func _is_valid_text(text: String) -> bool:
+	var regex = RegEx.new()
+	regex.compile("^[a-zA-Z0-9_\\-\\.\\!\\#\\$\\&]+$")
+	return regex.search(text) != null
+
 func delete_account(username: String):
 	_delete_record("DELETE FROM players WHERE username = ?",
 	[username],
 	"Failed to delete player"
 	)
+
+func check_username(username: String) -> bool:
+	username = username.strip_edges()
+	if username.length() < 1 or username.length() > 20:
+		_log_message("Invalid username: length must be between 1 and 20 characters.")
+		return false
+	if not _is_valid_text(username):
+		_log_message("Invalid username: contains invalid characters.")
+		return false
+	return true
+	
+func same_passwords(password1: String, password2: String) -> bool:
+	if password1 != password2:
+		return false
+	return true
+
+func check_password(password: String) -> bool:
+	password = password.strip_edges()
+	if password.length() < 8 or password.length() > 20:
+		_log_message("Invalid password: length must be between 3 and 20 characters.")
+		return false
+	if not _is_valid_text(password):
+		_log_message("Invalid password: contains invalid characters.")
+		return false
+	return true

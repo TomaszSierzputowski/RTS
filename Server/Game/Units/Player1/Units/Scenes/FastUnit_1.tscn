@@ -1,0 +1,58 @@
+[gd_scene load_steps=6 format=3 uid="uid://bdwot8sxqq36q"]
+
+[ext_resource type="Script" path="res://Server/Game/Units/Player1/Units/Scripts/fast_unit_1.gd" id="1_sw5x6"]
+[ext_resource type="Texture2D" uid="uid://k8g00nptdicw" path="res://icon.svg" id="2_qa1kh"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_id13c"]
+size = Vector2(25, 25)
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_bkhbk"]
+radius = 93.6483
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_jmj4m"]
+radius = 508.284
+
+[node name="FastUnit" type="CharacterBody2D" node_paths=PackedStringArray("nav_agent")]
+motion_mode = 1
+wall_min_slide_angle = 0.0
+script = ExtResource("1_sw5x6")
+nav_agent = NodePath("Navigation/NavigationAgent2D")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+scale = Vector2(0.2, 0.2)
+texture = ExtResource("2_qa1kh")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("RectangleShape2D_id13c")
+
+[node name="Navigation" type="Node2D" parent="."]
+
+[node name="NavigationAgent2D" type="NavigationAgent2D" parent="Navigation"]
+avoidance_enabled = true
+radius = 50.0
+avoidance_layers = 7
+avoidance_mask = 7
+
+[node name="RecalculateTimer" type="Timer" parent="Navigation"]
+wait_time = 0.1
+autostart = true
+
+[node name="AgrroRange" type="Area2D" parent="."]
+collision_layer = 0
+collision_mask = 2
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="AgrroRange"]
+shape = SubResource("CircleShape2D_bkhbk")
+debug_color = Color(0.313726, 0.521569, 1, 0.282353)
+
+[node name="DeAgrroRange" type="Area2D" parent="."]
+collision_layer = 0
+collision_mask = 2
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="DeAgrroRange"]
+shape = SubResource("CircleShape2D_jmj4m")
+debug_color = Color(0.839216, 0.286275, 0.647059, 0.14902)
+
+[connection signal="body_entered" from="AgrroRange" to="." method="_on_agrro_range_body_entered"]
+[connection signal="body_exited" from="AgrroRange" to="." method="_on_agrro_range_body_exited"]
+[connection signal="body_entered" from="DeAgrroRange" to="." method="_on_de_agrro_range_body_entered"]
