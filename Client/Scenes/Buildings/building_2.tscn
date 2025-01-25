@@ -1,0 +1,83 @@
+[gd_scene load_steps=13 format=3 uid="uid://4vi3gjcsf8ht"]
+
+[ext_resource type="Script" path="res://Client/Scripts/Units/building_2.gd" id="1_qtls2"]
+[ext_resource type="Texture2D" uid="uid://qb0uf0hm773x" path="res://Client/Sprites/buildings/building_2/building_2_highlight.png" id="2_xkvic"]
+[ext_resource type="Texture2D" uid="uid://covx73vghcei" path="res://Client/Sprites/buildings/building_2/building_2_red.png" id="3_vf58n"]
+[ext_resource type="Texture2D" uid="uid://tr0uxwd7j82c" path="res://Client/Sprites/buildings/building_2/building_2_blue.png" id="4_3b5x0"]
+[ext_resource type="Texture2D" uid="uid://cidlxwu0cy55e" path="res://Client/Sprites/buildings/building_2/building_2_outline.png" id="5_kp5d5"]
+[ext_resource type="Texture2D" uid="uid://bqum63i8rgbah" path="res://Client/Sprites/buildings/building_2/building_2_red_outline.png" id="6_7tgcw"]
+[ext_resource type="Texture2D" uid="uid://cb7yrrsa2y5j8" path="res://Client/Sprites/buildings/building_2/building_2_blue_outline.png" id="7_71ahd"]
+[ext_resource type="Texture2D" uid="uid://bowg7p45tande" path="res://Client/Sprites/units/unit_shapes/unit_1_shape.png" id="8_svb8x"]
+[ext_resource type="Texture2D" uid="uid://cn2juhrmxdgiy" path="res://Client/Sprites/units/unit_shapes/unit_2_shape.png" id="9_ll3fc"]
+[ext_resource type="Texture2D" uid="uid://ua4b15irxo23" path="res://Client/Sprites/units/unit_shapes/unit_3_shape.png" id="10_1ydx2"]
+[ext_resource type="Texture2D" uid="uid://i3tuih4s5abw" path="res://Client/Sprites/units/unit_shapes/unit_4_shape.png" id="11_ux7pq"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_5m62j"]
+size = Vector2(91, 90)
+
+[node name="building_2" type="CharacterBody2D"]
+position = Vector2(347, 282)
+input_pickable = true
+script = ExtResource("1_qtls2")
+
+[node name="highlight" type="Sprite2D" parent="."]
+visible = false
+position = Vector2(7.75, -7.75)
+scale = Vector2(1.19136, 1.19136)
+texture = ExtResource("2_xkvic")
+
+[node name="building_2_red" type="Sprite2D" parent="."]
+visible = false
+position = Vector2(8.25, -8.25)
+scale = Vector2(1.23913, 1.23913)
+texture = ExtResource("3_vf58n")
+
+[node name="building_2_blue" type="Sprite2D" parent="."]
+visible = false
+position = Vector2(7.75, -7.75)
+scale = Vector2(1.22464, 1.22464)
+texture = ExtResource("4_3b5x0")
+
+[node name="outline" type="Sprite2D" parent="."]
+position = Vector2(7.75001, -7.75001)
+scale = Vector2(1.2013, 1.2013)
+texture = ExtResource("5_kp5d5")
+
+[node name="shape" type="CollisionShape2D" parent="."]
+position = Vector2(7.5, -8)
+shape = SubResource("RectangleShape2D_5m62j")
+one_way_collision_margin = 0.0
+
+[node name="red_outline" type="Sprite2D" parent="."]
+visible = false
+position = Vector2(7.75, -7.75)
+scale = Vector2(1.21233, 1.21233)
+texture = ExtResource("6_7tgcw")
+
+[node name="blue_outline" type="Sprite2D" parent="."]
+visible = false
+position = Vector2(7.75, -7.75)
+scale = Vector2(1.21233, 1.21233)
+texture = ExtResource("7_71ahd")
+
+[node name="unit_1_shape" type="Sprite2D" parent="."]
+visible = false
+position = Vector2(8, -8)
+texture = ExtResource("8_svb8x")
+
+[node name="unit_2_shape" type="Sprite2D" parent="."]
+visible = false
+position = Vector2(8, -8)
+texture = ExtResource("9_ll3fc")
+
+[node name="unit_3_shape" type="Sprite2D" parent="."]
+visible = false
+position = Vector2(8, -8)
+texture = ExtResource("10_1ydx2")
+
+[node name="unit_4_shape" type="Sprite2D" parent="."]
+visible = false
+position = Vector2(8, -8)
+texture = ExtResource("11_ux7pq")
+
+[connection signal="input_event" from="." to="." method="_on_input_event"]

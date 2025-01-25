@@ -3,16 +3,27 @@ extends Node
 var resource_amount : int
 var unit_1 = preload("res://Client/Scenes/Units/unit_1.tscn")
 var unit_2 = preload("res://Client/Scenes/Units/unit_2.tscn")
+var unit_3 = preload("res://Client/Scenes/Units/unit_3.tscn")
+var unit_4 = preload("res://Client/Scenes/Units/unit_4.tscn")
 var main_base = preload("res://Client/Scenes/Buildings/main_base.tscn")
 var building_1 = preload("res://Client/Scenes/Buildings/building_1.tscn")
+var building_2 = preload("res://Client/Scenes/Buildings/building_2.tscn")
 var id_num = 0
 var unit_1_price = 10
 var unit_2_price = 10
+var unit_3_price = 10
+var unit_4_price = 10
 var main_base_price = 20
 var building_1_price = 10
+var building_2_price = 10
 var base_exists : bool = false
+var unit_1_base_exists : bool = false
+var unit_2_base_exists : bool = false
+var unit_3_base_exists : bool = false
+var unit_4_base_exists : bool = false
 var button_pressed : bool = false
 var player_color: bool
+var offset: int
 
 var red_units = []
 var blue_units = []
@@ -22,102 +33,65 @@ var blue_buildings = []
 @onready var stats_amount_label = $CanvasLayer/menuPanel/menuVBoxContainer/statsBodyLabel
 @onready var unit_1_button = $CanvasLayer/menuPanel/menuVBoxContainer/unit1button
 @onready var unit_2_button = $CanvasLayer/menuPanel/menuVBoxContainer/unit2button
+@onready var unit_3_button = $CanvasLayer/menuPanel/menuVBoxContainer/unit3button
+@onready var unit_4_button = $CanvasLayer/menuPanel/menuVBoxContainer/unit4button
 @onready var main_base_button = $CanvasLayer/menuPanel/menuVBoxContainer/mainBaseButton
-@onready var building_button = $CanvasLayer/menuPanel/menuVBoxContainer/buildingButton
-
-@onready var server = get_node("/root/Server")
-@onready var selection_box = $SelectionBox
+@onready var building_1_button = $CanvasLayer/menuPanel/menuVBoxContainer/building1Button
+@onready var unit_1_building_button = $CanvasLayer/menuPanel/menuVBoxContainer/unit1buildingButton
+@onready var unit_2_building_button = $CanvasLayer/menuPanel/menuVBoxContainer/unit2buildingButton
+@onready var unit_3_building_button = $CanvasLayer/menuPanel/menuVBoxContainer/unit3buildingButton
+@onready var unit_4_building_button = $CanvasLayer/menuPanel/menuVBoxContainer/unit4buildingButton
+@onready var menu_panel = $CanvasLayer/menuPanel
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(delta: float) -> void:
-	if base_exists == false:
-		unit_1_button.disabled = true
-		unit_2_button.disabled = true
-		main_base_button.disabled = false
-		building_button.disabled = true
-	else:
-		unit_1_button.disabled = false
-		unit_2_button.disabled = false
-		main_base_button.disabled = true
-		building_button.disabled = false
+	display_buttons()
 		
-	# obsługa sygnału zmieniającego ilość surowca
-	# obsługa sygnału zmieniającego położenie jednostek
 	stats_amount_label.text = str(resource_amount)
+	var window_size = DisplayServer.window_get_size()
+	offset = window_size.x - menu_panel.custom_minimum_size.x
 	
 
 
 # Called when an input event is detected
 func _input(event: InputEvent) -> void:
 	if event is InputEventMouseButton:
-		if event.button_index == MOUSE_BUTTON_LEFT and event.pressed and $unit_2.selected == true:
+		if button_pressed == false and unit_1_button.disabled == false and unit_1_button.button_pressed:
+			check_and_add_unit_1_on_pressed(event)
+		elif button_pressed == false and unit_2_button.disabled == false and unit_2_button.button_pressed:
+			check_and_add_unit_2_on_pressed(event)
+		elif button_pressed == false and unit_3_button.disabled == false and unit_3_button.button_pressed:
+			check_and_add_unit_3_on_pressed(event)
+		elif button_pressed == false and unit_4_button.disabled == false and unit_4_button.button_pressed:
+			check_and_add_unit_4_on_pressed(event)
+		elif button_pressed == false and main_base_button.disabled == false and main_base_button.button_pressed and base_exists == false:
+			check_and_add_main_base_on_pressed(event)
+		elif button_pressed == false and building_1_button.disabled == false and building_1_button.button_pressed:
+			check_and_add_building_1_on_pressed(event)
+		elif button_pressed == false and unit_1_building_button.disabled == false and unit_1_building_button.button_pressed:
+			check_and_add_building_2_on_pressed(event, 1)
+		elif button_pressed == false and unit_2_building_button.disabled == false and unit_2_building_button.button_pressed:
+			check_and_add_building_2_on_pressed(event, 2)
+		elif button_pressed == false and unit_3_building_button.disabled == false and unit_3_building_button.button_pressed:
+			check_and_add_building_2_on_pressed(event, 3)
+		elif button_pressed == false and unit_4_building_button.disabled == false and unit_4_building_button.button_pressed:
+			check_and_add_building_2_on_pressed(event, 4)
+		elif event.button_index == MOUSE_BUTTON_LEFT and event.pressed and $unit_2.selected == true:
 			var new_position : Vector2
 			new_position = $Map.get_global_mouse_position()
 			var current_position = $unit_2.get_current_position()
 			$unit_2.change_position(current_position, new_position)
 			$unit_2.set_selected(false)
-		elif button_pressed == false and unit_1_button.disabled == false and unit_1_button.button_pressed:
-			button_pressed = true
-			if event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
-				if get_resource_amount() >= unit_1_price:
-					var coords = $Map.get_global_mouse_position()
-					#add_unit1(coords, id_num, player_color)
-					#temp
-					Client.summon(Utils.EntityType.CHARACTER, coords)
-				else:
-					print("you do not have enough resource")
-			button_pressed = false
-		elif button_pressed == false and unit_2_button.disabled == false and unit_2_button.button_pressed:
-			button_pressed = true
-			if event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
-				if get_resource_amount() >= unit_2_price:
-					var coords = $Map.get_global_mouse_position()
-					add_unit2(coords, id_num, player_color)
-				else:
-					print("you do not have enough resource")
-			button_pressed = false
-		elif button_pressed == false and main_base_button.disabled == false and main_base_button.button_pressed and base_exists == false:
-			button_pressed = true
-			if event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
-				if get_resource_amount() >= main_base_price:
-					var coords = $Map.get_global_mouse_position()
-					add_main_base(coords, player_color)
-					base_exists = true
-				else:
-					print("you do not have enough resource")
-			button_pressed = false
-		elif button_pressed == false and building_button.disabled == false and building_button.button_pressed:
-			button_pressed = true
-			if event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
-				if get_resource_amount() >= building_1_price:
-					var coords = $Map.get_global_mouse_position()
-					add_building_1(coords, id_num, player_color)
-				else:
-					print("you do not have enough resource")
-			button_pressed = false
 			
 		
 
 func _ready():
-	# czekaj na sygnał z serwera mówiący ile wstepnie jest dostępne surowca
-	# do usunięcia potem to dokładne nadpisanie
 	resource_amount = 200
-	# pobierz z servera kolor gracza
-	player_color = false
-	
-	Client.summon_build.connect(summon_build)
-	
-	#blue_units.resize(256)
+	player_color = true
 	pass
 	
 func get_resource_amount() -> int:
 	return resource_amount
-
-func summon_build(player : int, id : int, type : Utils.EntityType, position : Vector2, health : int) -> void:
-	match type:
-		Utils.EntityType.CHARACTER:
-			add_unit1(position, id, player == 0)
-	pass
 	
 func add_unit1(position: Vector2, id: int, color: bool) -> void:
 	var new_unit = unit_1.instantiate()
@@ -173,6 +147,61 @@ func add_unit2(position: Vector2, id: int, color: bool) -> void:
 		})
 		print("saved to array")
 		
+func add_unit3(position: Vector2, id: int, color: bool) -> void:
+	var new_unit = unit_3.instantiate()
+	new_unit.position = position
+	new_unit.init_unit(id, color, position)
+	add_child(new_unit)
+	# zamiast zmniejszania ilosci surowca powinno byc wysłanie sygnału do serwera zeby zmniejszyc
+	resource_amount -= unit_3_price
+	print("added unit succesfully")
+	id_num += 1
+	
+	if color == false:
+		red_units.append({
+			"id": id,
+			"type": 3,
+			"position": position,
+			"instance": new_unit
+		})
+		print("saved to array")
+	else:
+		blue_units.append({
+			"id": id,
+			"type": 3,
+			"position": position,
+			"instance": new_unit
+		})
+		print("saved to array")
+		
+		
+func add_unit4(position: Vector2, id: int, color: bool) -> void:
+	var new_unit = unit_4.instantiate()
+	new_unit.position = position
+	new_unit.init_unit(id, color, position)
+	add_child(new_unit)
+	# zamiast zmniejszania ilosci surowca powinno byc wysłanie sygnału do serwera zeby zmniejszyc
+	resource_amount -= unit_4_price
+	print("added unit succesfully")
+	id_num += 1
+	
+	if color == false:
+		red_units.append({
+			"id": id,
+			"type": 4,
+			"position": position,
+			"instance": new_unit
+		})
+		print("saved to array")
+	else:
+		blue_units.append({
+			"id": id,
+			"type": 4,
+			"position": position,
+			"instance": new_unit
+		})
+		print("saved to array")
+
 func add_main_base(position: Vector2, color: bool) -> void:
 	var new_building = main_base.instantiate()
 	new_building.position = position
@@ -207,7 +236,7 @@ func add_building_1(position: Vector2, id: int, color: bool) -> void:
 	add_child(new_building)
 	# zamiast zmniejszania ilosci surowca powinno byc wysłanie sygnału do serwera zeby zmniejszyc
 	resource_amount -= building_1_price
-	print("added unit succesfully")
+	print("added building succesfully")
 	id_num += 1
 	
 	if color == false:
@@ -222,6 +251,33 @@ func add_building_1(position: Vector2, id: int, color: bool) -> void:
 		blue_buildings.append({
 			"id": id,
 			"type": 1,
+			"position": position,
+			"instance": new_building
+		})
+		print("saved to array")
+		
+func add_building_2(position: Vector2, id: int, color: bool, unit_type: int) -> void:
+	var new_building = building_2.instantiate()
+	new_building.position = position
+	new_building.init_building(id, color, position, unit_type)
+	add_child(new_building)
+	# zamiast zmniejszania ilosci surowca powinno byc wysłanie sygnału do serwera zeby zmniejszyc
+	resource_amount -= building_2_price
+	print("added building succesfully")
+	id_num += 1
+	
+	if color == false:
+		red_buildings.append({
+			"id": id,
+			"type": 2,
+			"position": position,
+			"instance": new_building
+		})
+		print("saved to array")
+	else:
+		blue_buildings.append({
+			"id": id,
+			"type": 2,
 			"position": position,
 			"instance": new_building
 		})
@@ -251,3 +307,142 @@ func move_unit(unit_id: int, new_position: Vector2, color: bool):
 		print("unit ", unit_id, " of color ", color, " changed position")
 		
 	
+func check_and_add_unit_1_on_pressed(event):
+	button_pressed = true
+	if event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
+		if get_resource_amount() >= unit_1_price:
+			var coords = $Map.get_global_mouse_position()
+			var coords_window = event.global_position
+			print(coords, coords_window, offset)
+			if coords_window.x < offset:
+				add_unit1(coords, id_num, player_color)
+		else:
+			print("you do not have enough resource")
+	button_pressed = false
+
+func check_and_add_unit_2_on_pressed(event):
+	button_pressed = true
+	if event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
+		if get_resource_amount() >= unit_2_price:
+			var coords = $Map.get_global_mouse_position()
+			var coords_window = event.global_position
+			if coords_window.x < offset:
+				add_unit2(coords, id_num, player_color)
+		else:
+			print("you do not have enough resource")
+	button_pressed = false
+	
+func check_and_add_unit_3_on_pressed(event):
+	button_pressed = true
+	if event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
+		if get_resource_amount() >= unit_3_price:
+			var coords = $Map.get_global_mouse_position()
+			var coords_window = event.global_position
+			if coords_window.x < offset:
+				add_unit3(coords, id_num, player_color)
+		else:
+			print("you do not have enough resource")
+	button_pressed = false
+	
+func check_and_add_unit_4_on_pressed(event):
+	button_pressed = true
+	if event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
+		if get_resource_amount() >= unit_4_price:
+			var coords = $Map.get_global_mouse_position()
+			var coords_window = event.global_position
+			if coords_window.x < offset:
+				add_unit4(coords, id_num, player_color)
+		else:
+			print("you do not have enough resource")
+	button_pressed = false
+	
+func check_and_add_main_base_on_pressed(event):
+	button_pressed = true
+	if event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
+		if get_resource_amount() >= main_base_price:
+			var coords = $Map.get_global_mouse_position()
+			var coords_window = event.global_position
+			if coords_window.x < offset:
+				add_main_base(coords, player_color)
+			base_exists = true
+		else:
+			print("you do not have enough resource")
+	button_pressed = false
+	main_base_button.toggle_mode = false
+	
+func check_and_add_building_1_on_pressed(event):
+	button_pressed = true
+	if event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
+		if get_resource_amount() >= building_1_price:
+			var coords = $Map.get_global_mouse_position()
+			var coords_window = event.global_position
+			if coords_window.x < offset:
+				add_building_1(coords, id_num, player_color)
+		else:
+			print("you do not have enough resource")
+	button_pressed = false
+	
+func check_and_add_building_2_on_pressed(event, unit_type):
+	button_pressed = true
+	if event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
+		if get_resource_amount() >= building_2_price:
+			var coords = $Map.get_global_mouse_position()
+			var coords_window = event.global_position
+			if coords_window.x < offset:
+				add_building_2(coords, id_num, player_color, unit_type)
+				if unit_type == 1:
+					unit_1_base_exists = true
+				elif unit_type == 2:
+					unit_2_base_exists = true
+				elif unit_type == 3:
+					unit_3_base_exists = true
+				elif unit_type == 4:
+					unit_4_base_exists = true
+		else:
+			print("you do not have enough resource")
+	button_pressed = false
+	
+	
+func display_buttons():
+	if base_exists == false:
+		unit_1_button.disabled = true
+		unit_2_button.disabled = true
+		unit_3_button.disabled = true
+		unit_4_button.disabled = true
+		main_base_button.disabled = false
+		building_1_button.disabled = true
+		unit_1_building_button.disabled = true
+		unit_2_building_button.disabled = true
+		unit_3_building_button.disabled = true
+		unit_4_building_button.disabled = true
+	else:
+		unit_1_button.disabled = false
+		unit_2_button.disabled = false
+		unit_3_button.disabled = false
+		unit_4_button.disabled = false
+		main_base_button.disabled = true
+		building_1_button.disabled = false
+		unit_1_building_button.disabled = false
+		unit_2_building_button.disabled = false
+		unit_3_building_button.disabled = false
+		unit_4_building_button.disabled = false
+		
+	if unit_1_base_exists == false:
+		unit_1_button.disabled = true
+	else:
+		unit_1_button.disabled = false
+		
+	if unit_2_base_exists == false:
+		unit_2_button.disabled = true
+	else:
+		unit_2_button.disabled = false
+		
+	if unit_3_base_exists == false:
+		unit_3_button.disabled = true
+	else:
+		unit_3_button.disabled = false
+		
+	if unit_4_base_exists == false:
+		unit_4_button.disabled = true
+	else:
+		unit_4_button.disabled = false

@@ -9,7 +9,7 @@
 [ext_resource type="Texture2D" uid="uid://cu24prudesl5l" path="res://Client/Sprites/units/unit_1/unit_1_blue_outline.png" id="7_vt6g3"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_0emnx"]
-radius = 76.0263
+radius = 37.0135
 
 [node name="unit_1" type="CharacterBody2D"]
 position = Vector2(347, 282)
