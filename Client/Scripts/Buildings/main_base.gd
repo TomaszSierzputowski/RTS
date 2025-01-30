@@ -29,6 +29,7 @@ func init_base(_id: int, _color: bool, _position: Vector2) -> void:
 	building_type.visible = true
 	building_type_outline.visible = true
 
+
 func _ready() -> void:
 	pass
 
@@ -42,22 +43,7 @@ func set_selected(value: bool) -> void:
 	if selected != value:
 		selected = value
 		highlight.visible = value
-	
-func _on_input_event(viewport: Node, event: InputEvent, shape_idx: int) -> void:
-	if event is InputEventMouseButton:
-		if event.button_index == MOUSE_BUTTON_LEFT and event.pressed and selected == false:
-			#set_selected(true)
-			pass
-		elif event.button_index == MOUSE_BUTTON_LEFT and event.pressed and selected == true:
-			#new_position = event.global_position
-			#change_position(current_position, new_position)
-			#set_selected(false)
-			pass
-		elif event.button_index == MOUSE_BUTTON_RIGHT and event.pressed:
-			change_health(-5)
-			#new_position = Vector2(position.x - 5, position.y - 5)
-			#change_position(current_position, new_position)
-			#health -= 5
+
 			
 func change_health(value: float) -> void:
 	health += value

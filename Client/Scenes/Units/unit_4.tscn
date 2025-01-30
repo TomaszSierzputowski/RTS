@@ -8,39 +8,53 @@
 [ext_resource type="Texture2D" uid="uid://ndkh4yu0krew" path="res://Client/Sprites/units/unit_4/unit_4_red_outline.png" id="5_5hveu"]
 [ext_resource type="Texture2D" uid="uid://cdqvrv65chel1" path="res://Client/Sprites/units/unit_4/unit_4_blue_outline.png" id="6_7enr4"]
 
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_llf4g"]
-size = Vector2(76, 76)
+[sub_resource type="CircleShape2D" id="CircleShape2D_nu0b4"]
+radius = 15.0
 
 [node name="unit_4" type="CharacterBody2D"]
 position = Vector2(347, 282)
+collision_layer = 2
+collision_mask = 4
 input_pickable = true
 script = ExtResource("1_yiqk5")
 
 [node name="highlight" type="Sprite2D" parent="."]
 visible = false
+position = Vector2(-4.47035e-06, 4.47035e-06)
+scale = Vector2(0.345679, 0.345679)
 texture = ExtResource("1_you2v")
 
 [node name="unit_4_red" type="Sprite2D" parent="."]
 visible = false
+position = Vector2(-3.8147e-06, 6.67572e-06)
+scale = Vector2(0.371377, 0.371377)
 texture = ExtResource("2_pjwig")
 
 [node name="unit_4_blue" type="Sprite2D" parent="."]
 visible = false
+position = Vector2(3.8147e-06, -3.8147e-06)
+scale = Vector2(0.376812, 0.376812)
 texture = ExtResource("3_trtq5")
 
 [node name="outline" type="Sprite2D" parent="."]
+position = Vector2(-4.61936e-06, 4.61936e-06)
+scale = Vector2(0.352273, 0.352273)
 texture = ExtResource("4_g4pbj")
 
 [node name="shape" type="CollisionShape2D" parent="."]
-shape = SubResource("RectangleShape2D_llf4g")
+shape = SubResource("CircleShape2D_nu0b4")
 one_way_collision_margin = 0.0
 
 [node name="red_outline" type="Sprite2D" parent="."]
 visible = false
+position = Vector2(1.14441e-05, -9.53674e-06)
+scale = Vector2(0.34589, 0.34589)
 texture = ExtResource("5_5hveu")
 
 [node name="blue_outline" type="Sprite2D" parent="."]
 visible = false
+position = Vector2(1.43051e-06, -1.43051e-06)
+scale = Vector2(0.342466, 0.342466)
 texture = ExtResource("6_7enr4")
 
 [connection signal="input_event" from="." to="." method="_on_input_event"]
