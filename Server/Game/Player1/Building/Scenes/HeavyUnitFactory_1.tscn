@@ -1,0 +1,29 @@
+[gd_scene load_steps=5 format=3 uid="uid://c6usyww3wsnoi"]
+
+[ext_resource type="Script" path="res://Server/Game/Player1/Building/Scripts/heavy_unit_factory_1.gd" id="1_dxmsu"]
+[ext_resource type="Texture2D" uid="uid://k8g00nptdicw" path="res://icon.svg" id="2_c7147"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_33dsq"]
+size = Vector2(100, 100)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_lqlce"]
+size = Vector2(100, 100)
+
+[node name="HeavyUnitFactory1" type="StaticBody2D"]
+collision_layer = 3
+collision_mask = 3
+script = ExtResource("1_dxmsu")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+scale = Vector2(0.75, 0.75)
+texture = ExtResource("2_c7147")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("RectangleShape2D_33dsq")
+
+[node name="StaticBody2D" type="Area2D" parent="."]
+collision_layer = 3
+collision_mask = 3
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="StaticBody2D"]
+shape = SubResource("RectangleShape2D_lqlce")

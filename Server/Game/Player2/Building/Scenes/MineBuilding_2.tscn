@@ -1,0 +1,47 @@
+[gd_scene load_steps=6 format=3 uid="uid://mn3bs3tfhj8x"]
+
+[ext_resource type="Script" path="res://Server/Game/Player2/Building/Scripts/mine_building_2.gd" id="1_gyc5u"]
+[ext_resource type="Texture2D" uid="uid://k8g00nptdicw" path="res://icon.svg" id="2_kw600"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_xy2wh"]
+size = Vector2(100, 100)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_j0tpd"]
+size = Vector2(100, 100)
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_5nboh"]
+radius = 300.0
+
+[node name="MineBuilding2" type="StaticBody2D"]
+collision_layer = 5
+collision_mask = 5
+script = ExtResource("1_gyc5u")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("RectangleShape2D_xy2wh")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+modulate = Color(1, 0, 1, 1)
+scale = Vector2(0.75, 0.75)
+texture = ExtResource("2_kw600")
+
+[node name="StaticBody2D" type="Area2D" parent="."]
+collision_layer = 5
+collision_mask = 5
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="StaticBody2D"]
+shape = SubResource("RectangleShape2D_j0tpd")
+
+[node name="Area2D" type="Area2D" parent="."]
+collision_layer = 4
+collision_mask = 4
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Area2D"]
+shape = SubResource("CircleShape2D_5nboh")
+
+[node name="Timer" type="Timer" parent="."]
+autostart = true
+
+[connection signal="body_entered" from="Area2D" to="." method="_on_area_2d_body_entered"]
+[connection signal="body_exited" from="Area2D" to="." method="_on_area_2d_body_exited"]
+[connection signal="timeout" from="Timer" to="." method="_on_timer_timeout"]

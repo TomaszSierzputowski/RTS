@@ -1,0 +1,29 @@
+[gd_scene load_steps=5 format=3 uid="uid://bfyqfnp410i7o"]
+
+[ext_resource type="Script" path="res://Server/Game/Player1/Building/Scripts/standard_unit_factory_1.gd" id="1_fltci"]
+[ext_resource type="Texture2D" uid="uid://k8g00nptdicw" path="res://icon.svg" id="2_bgfq2"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_jhksu"]
+size = Vector2(100, 100)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_fkpgf"]
+size = Vector2(100, 100)
+
+[node name="StandardUnitFactory1" type="StaticBody2D"]
+collision_layer = 3
+collision_mask = 3
+script = ExtResource("1_fltci")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("RectangleShape2D_jhksu")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+scale = Vector2(0.75, 0.75)
+texture = ExtResource("2_bgfq2")
+
+[node name="StaticBody2D" type="Area2D" parent="."]
+collision_layer = 3
+collision_mask = 3
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="StaticBody2D"]
+shape = SubResource("RectangleShape2D_fkpgf")
