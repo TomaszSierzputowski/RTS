@@ -1,0 +1,30 @@
+[gd_scene load_steps=5 format=3 uid="uid://bpxvp6bkp8q1v"]
+
+[ext_resource type="Script" path="res://Server/Game/Player2/Building/Scripts/standard_unit_factory_2.gd" id="1_w5xte"]
+[ext_resource type="Texture2D" uid="uid://k8g00nptdicw" path="res://icon.svg" id="2_jse12"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_jhksu"]
+size = Vector2(100, 100)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_fkpgf"]
+size = Vector2(100, 100)
+
+[node name="StandardUnitFactory2" type="StaticBody2D"]
+collision_layer = 4
+collision_mask = 4
+script = ExtResource("1_w5xte")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+modulate = Color(1, 0, 1, 1)
+scale = Vector2(0.75, 0.75)
+texture = ExtResource("2_jse12")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("RectangleShape2D_jhksu")
+
+[node name="StaticBody2D" type="Area2D" parent="."]
+collision_layer = 4
+collision_mask = 4
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="StaticBody2D"]
+shape = SubResource("RectangleShape2D_fkpgf")

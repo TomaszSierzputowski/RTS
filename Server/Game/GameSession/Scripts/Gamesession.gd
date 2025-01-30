@@ -8,17 +8,15 @@ var game_map: Node
 # Ścieżka do pliku sceny mapy
 var map_scene_path = preload("res://Server/Game/map/map.tscn")
 
-#Ścieżki do plików scen jednostek
-var combatUnit = [preload("res://Server/Game/Units/Player1/Scenes/CombatUnit_1.tscn"), preload("res://Server/Game/Units/Player2/Scenes/CombatUnit_2.tscn")]
-var workerunit = [preload("res://Server/Game/Units/Player1/Scenes/WorkerUnit_1.tscn"), preload("res://Server/Game/Units/Player2/Scenes/WorkerUnit_2.tscn")]
-var building = [preload("res://Server/Game/Units/Player1/Scenes/Building_1.tscn"), preload("res://Server/Game/Units/Player2/Scenes/Building_2.tscn")]
-
-var BaseBuilding = preload("res://Server/Game/Units/Player1/Building/Scenes/BaseBuilding_1.tscn")
-var mineBuilding = preload("res://Server/Game/Units/Player1/Building/Scenes/MineBuilding_1.tscn")
-var triangleBuilding = preload("res://Server/Game/Units/Player1/Building/Scenes/FastUnitFactory_1.tscn")
-var squareBuilding = preload("res://Server/Game/Units/Player1/Building/Scenes/HeavyUnitFactory_1.tscn")
-var pentagonBuilding = preload("res://Server/Game/Units/Player1/Building/Scenes/StandardUnitFactory_1.tscn")
-var workerUnit = preload("res://Server/Game/Units/Player1/Units/Scenes/WorkerUnit_1.tscn")
+var BaseBuilding = [preload("res://Server/Game/Player1/Building/Scenes/BaseBuilding_1.tscn"),preload("res://Server/Game/Player2/Building/Scenes/BaseBuilding_2.tscn")]
+var mineBuilding = [preload("res://Server/Game/Player1/Building/Scenes/MineBuilding_1.tscn"),preload("res://Server/Game//Player2/Building/Scenes/MineBuilding_2.tscn")]
+var triangleBuilding = [preload("res://Server/Game/Player1/Building/Scenes/FastUnitFactory_1.tscn"),preload("res://Server/Game/Player2/Building/Scenes/FastUnitFactory_2.tscn")]
+var squareBuilding = [preload("res://Server/Game/Player1/Building/Scenes/HeavyUnitFactory_1.tscn"),preload("res://Server/Game/Player2/Building/Scenes/HeavyUnitFactory_2.tscn")]
+var pentagonBuilding = [preload("res://Server/Game/Player1/Building/Scenes/StandardUnitFactory_1.tscn"),preload("res://Server/Game/Player2/Building/Scenes/StandardUnitFactory_2.tscn")]
+var workerUnit = [preload("res://Server/Game/Player1/Units/Scenes/WorkerUnit_1.tscn"), preload("res://Server/Game/Player2/Units/Scenes/WorkerUnit_2.tscn")]
+var square = [preload("res://Server/Game/Player1/Units/Scenes/StandardUnit_1.tscn"),preload("res://Server/Game/Player2/Units/Scenes/StandardUnit_2.tscn")]
+var triangle = [preload("res://Server/Game/Player1/Units/Scenes/FastUnit_1.tscn"),preload("res://Server/Game/Player2/Units/Scenes/FastUnit_2.tscn")] 
+var pentagon = [preload("res://Server/Game/Player1/Units/Scenes/StandardUnit_1.tscn"),preload("res://Server/Game/Player2/Units/Scenes/StandardUnit_2.tscn")]
 
 var players : Array[Player]
 
@@ -68,27 +66,27 @@ func summon(player_num : int, character_type : Utils.EntityType, position : Vect
 	var unit : Node
 	match character_type:
 		Utils.EntityType.WORKER:
-			#unit = workerunit[player_num].instantiate()
-			unit = workerUnit.instantiate()
+			unit = workerUnit[player_num].instantiate()
 			unit.player = players[player_num]
 		Utils.EntityType.MAIN_BASE:
-			#unit = building[player_num].instantiate()
-			unit = BaseBuilding.instantiate()
+			unit = BaseBuilding[player_num].instantiate()
 		Utils.EntityType.MINE_YES:
-			#unit = building[player_num].instantiate()
-			unit = mineBuilding.instantiate()
+			unit = mineBuilding[player_num].instantiate()
 		Utils.EntityType.TRIANGLE_YES:
-			#unit = building[player_num].instantiate()
-			unit = triangleBuilding.instantiate()
+			unit = triangleBuilding[player_num].instantiate()
 		Utils.EntityType.SQUARE_YES:
-			#unit = building[player_num].instantiate()
-			unit = squareBuilding.instantiate()
+			unit = squareBuilding[player_num].instantiate()
 		Utils.EntityType.PENTAGON_YES:
-			#unit = building[player_num].instantiate()
-			unit = pentagonBuilding.instantiate()
+			unit = pentagonBuilding[player_num].instantiate()
+		Utils.EntityType.TRIANGLE:
+			unit = triangle[player_num].instantiate()
+		Utils.EntityType.SQUARE:
+			unit = square[player_num].instantiate()
+		Utils.EntityType.PENTAGON:
+			unit = pentagon[player_num].instantiate()
 # Funkcja dodająca jednostkę do mapy
 #func add_unit_to_map(unit: Node, player_num: int, position: Vector2):
-	if unit:
+	if unit and can_place(player_num,character_type,position): #and is_valid(position):
 		print("summoned: ", character_type)
 		var player = players[player_num]
 		unit.position = position
@@ -112,60 +110,183 @@ func get_cell_id(point: Vector2):
 		if cell_id != -1:
 			return cell_id
 	return -1
+
+func can_place(player_num : int, character_type : Utils.EntityType,  position : Vector2) -> bool:
+	var shape
+	match character_type:
+		Utils.EntityType.WORKER:
+			shape = CircleShape2D.new()
+			shape.radius = 15
+		Utils.EntityType.MAIN_BASE:
+			shape = CircleShape2D.new()
+			shape.radius = 100
+		Utils.EntityType.MINE_YES:
+			shape = RectangleShape2D.new()
+			shape.size = Vector2(100,100)
+		Utils.EntityType.TRIANGLE_YES:
+			shape = RectangleShape2D.new()
+			shape.size = Vector2(100,100)
+		Utils.EntityType.SQUARE_YES:
+			shape = RectangleShape2D.new()
+			shape.size = Vector2(100,100)
+		Utils.EntityType.PENTAGON_YES:
+			shape = RectangleShape2D.new()
+			shape.size = Vector2(100,100)
+		Utils.EntityType.TRIANGLE:
+			shape = CircleShape2D.new()
+			shape.radius = 15
+		Utils.EntityType.SQUARE:
+			shape = CircleShape2D.new()
+			shape.radius = 15
+		Utils.EntityType.PENTAGON:
+			shape = CircleShape2D.new()
+			shape.radius = 15
+	
+	if !is_valid(position) and is_area_clear(position,shape) and is_unit_in_range_of_building(player_num,character_type,position):
+		return true
+	return false
 	
 func is_valid(point: Vector2):
 	
 	var tilemap = game_map.get_node("TileMapLayer")
 	if tilemap:
 		point =tilemap.local_to_map(point)
-		print(point)
 		var cell_id = tilemap.get_cell_source_id(point)
-		print(cell_id)
 		if cell_id != 4 and cell_id != 1 and cell_id != -1:
 			return false
 	return true
+	
 
-func is_area_clear(point: Vector2) -> bool:
-	var new_point = point
+func is_area_clear(position: Vector2, shape: Shape2D)-> bool:
+	var shape2
 	for child in game_map.get_children():
-		if child is StaticBody2D :
-			if child.position.distance_to(new_point) <= 50 :
-				return false
-		if child is CharacterBody2D :
-			if child.position.distance_to(new_point) <= 25 :
-				return false
+		if child.has_method("get_class_name"):
+			var classname = child.get_class_name()
+			if classname == "Base":
+				shape2 = CircleShape2D.new()
+				shape2.radius = 100
+				if shape.collide(Transform2D(0,position),shape2,Transform2D(0,child.global_position)):
+					return false
+			elif classname  in ["FastUnit","StandardUnit","HeavyUnit","WorkerUnit"]:
+				shape2 = CircleShape2D.new()
+				shape2.radius = 15
+				if shape.collide(Transform2D(0,position),shape2,Transform2D(0,child.global_position)):
+					return false
+			elif classname in ["FastUnitFactory","StandardUnitFactory","HeavyUnitFactory","Mine"]:
+				shape2 = RectangleShape2D.new()
+				shape2.size = Vector2(100,100)
+				if shape.collide(Transform2D(0,position),shape2,Transform2D(0,child.global_position)):
+					return false
 	return true
+
+func is_unit_in_range_of_building(player_num : int, character_type : Utils.EntityType,  position : Vector2):
+	if character_type not in [Utils.EntityType.TRIANGLE, Utils.EntityType.SQUARE, Utils.EntityType.PENTAGON]:
+		return true
+	for child in game_map.get_children():
+		if child.has_method("get_class_name") and child.has_method("get_player_num"):
+			var classname = child.get_class_name()
+			var player_num_2 = child.get_player_num()-1
+			match character_type:
+				Utils.EntityType.TRIANGLE:
+					if classname == "FastUnitFactory" and child.global_position.distance_to(position)<=200 and player_num == player_num_2:
+						return true
+				Utils.EntityType.SQUARE:
+					if classname == "StandardUnitFactory" and child.global_position.distance_to(position)<=200 and player_num == player_num_2:
+						return true
+				Utils.EntityType.PENTAGON:
+					if classname == "HeavyUnitFactory" and child.global_position.distance_to(position)<=200 and player_num == player_num_2:
+						return true
+			
+	return false
+	
+func end_game() -> void:
+	queue_free()
+	
 	
 func _input(event):
-	if event is InputEventMouseButton and event.pressed:
-		if event.button_index == MOUSE_BUTTON_LEFT:
-			var target_position = game_map.get_global_mouse_position()
-			if not is_valid(target_position) and is_area_clear(target_position):
-				summon(0,Utils.EntityType.CHARACTER,target_position)
-
-		elif event.button_index == MOUSE_BUTTON_RIGHT:
-			var target_position = game_map.get_global_mouse_position()
-			if not is_valid(target_position) and is_area_clear(target_position):
-				summon(1,Utils.EntityType.CHARACTER,target_position)
-
 	if event is InputEventKey:
-		if Input.is_action_just_pressed("building_1"):
+		if Input.is_action_just_pressed("MAIN_BASE_1"):
 			var target_position = game_map.get_global_mouse_position()
-			if not is_valid(target_position) and is_area_clear(target_position) :
-				summon(0,Utils.EntityType.BUILDING,target_position)
-		elif Input.is_action_just_pressed("building_2"):
+			var shape = CircleShape2D.new()
+			shape.radius = 100
+			if can_place(0,Utils.EntityType.MAIN_BASE,target_position):
+				summon(0,Utils.EntityType.MAIN_BASE, target_position)
+		if Input.is_action_just_pressed("MAIN_BASE_2"):
 			var target_position = game_map.get_global_mouse_position()
-			if not is_valid(target_position) and is_area_clear(target_position):
-				summon(1,Utils.EntityType.BUILDING,target_position)
-		elif Input.is_action_just_pressed("worker_1"):
+			var shape = CircleShape2D.new()
+			shape.radius = 100
+			if can_place(1,Utils.EntityType.MAIN_BASE,target_position):
+				summon(1,Utils.EntityType.MAIN_BASE, target_position)
+		if Input.is_action_just_pressed("MINE_1"):
 			var target_position = game_map.get_global_mouse_position()
-			if not is_valid(target_position) and is_area_clear(target_position):
-				summon(0,Utils.EntityType.CHARACTER,target_position)
-		elif Input.is_action_just_pressed("worker_2"):
+			var shape = RectangleShape2D.new()
+			shape.size = Vector2(100,100)
+			if can_place(0,Utils.EntityType.MINE_YES, target_position):
+				summon(0,Utils.EntityType.MINE_YES, target_position)
+		if Input.is_action_just_pressed("MINE_2"):
 			var target_position = game_map.get_global_mouse_position()
-			if not is_valid(target_position) and is_area_clear(target_position):
-				summon(0,Utils.EntityType.CHARACTER,target_position)
-
+			var shape = RectangleShape2D.new()
+			shape.size = Vector2(100,100)
+			if can_place(1,Utils.EntityType.MINE_YES, target_position):
+				summon(1,Utils.EntityType.MINE_YES, target_position)
+		if Input.is_action_just_pressed("TRAINGLE_B_1"):
+			var target_position = game_map.get_global_mouse_position()
+			if can_place(0,Utils.EntityType.TRIANGLE_YES, target_position):
+				summon(0,Utils.EntityType.TRIANGLE_YES, target_position)
+		if Input.is_action_just_pressed("TRAINGLE_B_2"):
+			var target_position = game_map.get_global_mouse_position()
+			if can_place(1,Utils.EntityType.TRIANGLE_YES, target_position):
+				summon(1,Utils.EntityType.TRIANGLE_YES, target_position)
+		if Input.is_action_just_pressed("SQUARE_B_1"):
+			var target_position = game_map.get_global_mouse_position()
+			if can_place(0,Utils.EntityType.SQUARE_YES, target_position):
+				summon(0,Utils.EntityType.SQUARE_YES, target_position)
+		if Input.is_action_just_pressed("SQUARE_B_2"):
+			var target_position = game_map.get_global_mouse_position()
+			if can_place(1,Utils.EntityType.SQUARE_YES, target_position):
+				summon(1,Utils.EntityType.SQUARE_YES, target_position)
+		if Input.is_action_just_pressed("PENTAGON_B_1"):
+			var target_position = game_map.get_global_mouse_position()
+			var shape = RectangleShape2D.new()
+			shape.size = Vector2(100,100)
+			if not is_valid(target_position) and is_area_clear(target_position,shape) :
+				summon(0,Utils.EntityType.PENTAGON_YES, target_position)
+		if Input.is_action_just_pressed("PENTAGON_B_2"):
+			var target_position = game_map.get_global_mouse_position()
+			if can_place(1,Utils.EntityType.PENTAGON_YES, target_position):
+				summon(1,Utils.EntityType.PENTAGON_YES, target_position)
+		if Input.is_action_just_pressed("WORKER_1"):
+			var target_position = game_map.get_global_mouse_position()
+			if can_place(0,Utils.EntityType.WORKER, target_position):
+				summon(0,Utils.EntityType.WORKER, target_position)
+		if Input.is_action_just_pressed("WORKER_2"):
+			var target_position = game_map.get_global_mouse_position()
+			if can_place(1,Utils.EntityType.WORKER, target_position):
+				summon(1,Utils.EntityType.WORKER, target_position)
+		if Input.is_action_just_pressed("TRAINGLE_1"):
+			var target_position = game_map.get_global_mouse_position()
+			if can_place(0,Utils.EntityType.TRIANGLE, target_position):
+				summon(0,Utils.EntityType.TRIANGLE, target_position)
+		if Input.is_action_just_pressed("TRAINGLE_2"):
+			var target_position = game_map.get_global_mouse_position()
+			if can_place(1,Utils.EntityType.TRIANGLE, target_position):
+				summon(1,Utils.EntityType.TRIANGLE, target_position)
+		if Input.is_action_just_pressed("SQUARE_1"):
+			var target_position = game_map.get_global_mouse_position()
+			if can_place(0,Utils.EntityType.SQUARE, target_position):
+				summon(0,Utils.EntityType.SQUARE, target_position)
+		if Input.is_action_just_pressed("SQUARE_2"):
+			var target_position = game_map.get_global_mouse_position()
+			if can_place(1,Utils.EntityType.SQUARE, target_position):
+				summon(1,Utils.EntityType.SQUARE, target_position)
+		if Input.is_action_just_pressed("PENTAGON_1"):
+			var target_position = game_map.get_global_mouse_position()
+			if can_place(0,Utils.EntityType.PENTAGON, target_position):
+				summon(0,Utils.EntityType.PENTAGON, target_position)
+		if Input.is_action_just_pressed("PENTAGON_2"):
+			var target_position = game_map.get_global_mouse_position()
+			if can_place(1,Utils.EntityType.PENTAGON, target_position):
+				summon(1,Utils.EntityType.PENTAGON, target_position)
 # Przykład użycia:
 # var session = GameSession.new()
 # session._ready()

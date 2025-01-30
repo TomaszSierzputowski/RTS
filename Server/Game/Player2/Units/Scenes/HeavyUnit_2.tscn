@@ -1,0 +1,56 @@
+[gd_scene load_steps=6 format=3 uid="uid://caxmh8k2ixh11"]
+
+[ext_resource type="Script" path="res://Server/Game/Player2/Units/Scripts/heavy_unit_2.gd" id="1_hpa44"]
+[ext_resource type="Texture2D" uid="uid://k8g00nptdicw" path="res://icon.svg" id="2_uyu7v"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_3cjj3"]
+radius = 15.0
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_ltxrn"]
+radius = 93.6483
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_c6m3o"]
+radius = 508.284
+
+[node name="HeavyUnit2" type="CharacterBody2D" node_paths=PackedStringArray("nav_agent")]
+collision_layer = 4
+collision_mask = 7
+script = ExtResource("1_hpa44")
+nav_agent = NodePath("Navigation/NavigationAgent2D")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+modulate = Color(1, 0, 1, 1)
+scale = Vector2(0.175, 0.175)
+texture = ExtResource("2_uyu7v")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("CircleShape2D_3cjj3")
+
+[node name="Navigation" type="Node2D" parent="."]
+
+[node name="NavigationAgent2D" type="NavigationAgent2D" parent="Navigation"]
+avoidance_enabled = true
+
+[node name="Timer" type="Timer" parent="Navigation"]
+wait_time = 0.1
+autostart = true
+
+[node name="AgrroRange" type="Area2D" parent="."]
+collision_layer = 0
+collision_mask = 2
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="AgrroRange"]
+shape = SubResource("CircleShape2D_ltxrn")
+debug_color = Color(0.313726, 0.521569, 1, 0.282353)
+
+[node name="DeAgrroRange" type="Area2D" parent="."]
+collision_layer = 0
+collision_mask = 2
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="DeAgrroRange"]
+shape = SubResource("CircleShape2D_c6m3o")
+debug_color = Color(0.839216, 0.286275, 0.647059, 0.14902)
+
+[connection signal="body_entered" from="AgrroRange" to="." method="_on_agrro_range_body_entered"]
+[connection signal="body_exited" from="AgrroRange" to="." method="_on_agrro_range_body_exited"]
+[connection signal="body_entered" from="DeAgrroRange" to="." method="_on_de_agrro_range_body_entered"]

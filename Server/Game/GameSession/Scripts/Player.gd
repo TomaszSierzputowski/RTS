@@ -3,76 +3,120 @@ extends Node
 class_name Player
 
 # Lista jednostek gracza
-var Base: BaseBuilding
+var Base: BaseBuilding1
 var units: Array = []
 var resources: int = 1000000
 
 var BaseBuildingCost: int = 500
+var MineCost: int = 100
 var FastUnitFacotryCost: int = 100
 var StandardUnitFacotryCost: int = 100
 var HeavyUnitFacotryCost: int = 100
 var WorkerUnitCost: int = 25
-var CombatUnitCost: int = 50
-var BuildingCost: int = 100
+var FastUnitCost: int = 25
+var StandardUnitCost: int = 25
+var HeavyUnitCost: int = 25
+
 
 # Lista odblokowanych jednostek
-var unlocked_units: Array = ["BaseBuilding"]  
+var unlocked_units: Array = ["Base"] 
+var has_base: bool = false  
 
 # Funkcja dodająca jednostkę do gracza
 func add_unit(unit: Node):
-	units.append(unit)
-	return
-	
-	if unit.name.substr(0,"BaseBuilding".length()) == "BaseBuilding" and "BaseBuilding" in unlocked_units and resources - BaseBuildingCost >= 0:
-		resources -= BaseBuildingCost
-		units.append(unit)
-		_unlock_worker_units()
-	
-	if unit.name.substr(0,"WorkerUnit".length()) == "WorkerUnit" and "WorkerUnit" in unlocked_units and resources - WorkerUnitCost >= 0:
-		resources-=WorkerUnitCost
-		units.append(unit)
-		_unlock_building()
-	
-	if unit.name.substr(0,"FastUnitFacotry".length()) == "FastUnitFactory" and "FastUnitFactory" in unlocked_units and resources - FastUnitFacotryCost >= 0:
-		resources -= FastUnitFacotryCost
-		units.append(unit)
-		_unlock_combat_units()
-	
-	if unit.name.substr(0,"StandardUnitFacotry".length()) == "StandardUnitFactory" and "StandardUnitFactory" in unlocked_units and resources - FastUnitFacotryCost >= 0:
-		resources -= FastUnitFacotryCost
-		units.append(unit)
-		_unlock_combat_units()
-		
-	if unit.name.substr(0,"HeavyUnitFacotry".length()) == "HeavyUnitFactory" and "HeavyUnitFactory" in unlocked_units and resources - FastUnitFacotryCost >= 0:
-		resources -= FastUnitFacotryCost
-		units.append(unit)
-		_unlock_combat_units()
-	
-	if unit.name.substr(0,"CombatUnit".length()) == "CombatUnit" and "CombatUnit" in unlocked_units and resources - CombatUnitCost >= 0:
-		resources-=CombatUnitCost
-		units.append(unit)
-	
+	if unit.has_method("get_class_name"):
+		var classname = unit.get_class_name()
+		match classname:
+			"Base":
+				if resources >= BaseBuildingCost and classname in unlocked_units:
+					resources -= BaseBuildingCost
+					has_base = true
+					units.append(unit)
+					_unlock_mine()
+					_unlock_worker_units()
+			"Mine":
+				if resources >= MineCost and classname in unlocked_units:
+					resources -= MineCost
+					units.append(unit)
+					_unlock_fast_unit_factory()
+					_unlock_standard_unit_factory()
+					_unlock_heavy_unit_factory()
+							
+			"HeavyUnitFactory":
+				if resources >= HeavyUnitFacotryCost and classname in unlocked_units :
+					resources -= HeavyUnitFacotryCost
+					units.append(unit)
+					_unlock_heavy_units()
+			"FastUnitFactory":
+				if resources >= FastUnitFacotryCost and classname in unlocked_units:
+					resources -= FastUnitFacotryCost
+					units.append(unit)
+					_unlock_fast_units()
+			"StandardUnitFactory":
+				if resources >= StandardUnitFacotryCost and classname in unlocked_units:
+					resources -= StandardUnitFacotryCost
+					units.append(unit)
+					_unlock_standard_units()
+			"WorkerUnit":
+				if resources >= WorkerUnitCost and classname in unlocked_units:
+					resources -= WorkerUnitCost
+					units.append(unit)
+			"FastUnit":
+				if resources >= FastUnitCost and classname in unlocked_units:
+					resources -= FastUnitCost
+					units.append(unit)
+			"StandardUnit":
+				if resources >= StandardUnitCost and classname in unlocked_units:
+					resources -= StandardUnitCost
+					units.append(unit)
+			"HeavyUnit":
+				if resources >= HeavyUnitCost and classname in unlocked_units:
+					resources -= HeavyUnitCost
+					units.append(unit)
+			
 	
 		
 func add_resource(value: int):
 	if value >= 0:
 		resources+=value
+		
+func _unlock_mine():
+	if "Mine" not in unlocked_units:
+		unlocked_units.append("Mine")
+		print("Mines unlocked!")
+
 
 func _unlock_worker_units():
 	if "WorkerUnit"  not in unlocked_units:
 		unlocked_units.append("WorkerUnit")
 		print("Worker units unlocked!")
+		
+func _unlock_fast_units():
+	if "FastUnit"  not in unlocked_units:
+		unlocked_units.append("FastUnit")
+		print("Fast unit unlocked!")
 
-func _unlock_combat_units():
-	if "CombatUnit"  not in unlocked_units:
-		unlocked_units.append("CombatUnit")
-		print("Combat units unlocked!")
+func _unlock_standard_units():
+	if "StandardUnit"  not in unlocked_units:
+		unlocked_units.append("StandardUnit")
+		print("Standard unit unlocked!")
 
-func _unlock_building():
-	if "FastUnitFactory"  not in unlocked_units:
+func _unlock_heavy_units():
+	if "HeavyUnit"  not in unlocked_units:
+		unlocked_units.append("HeavyUnit")
+		print("Heavy unit unlocked!")
+
+func _unlock_fast_unit_factory():
+	if "FastUnitFactory" not in unlocked_units:
 		unlocked_units.append("FastUnitFactory")
-	if "StandardUnitFactory"  not in unlocked_units:
+		print("Fast unit factory unlocked!")
+
+func _unlock_standard_unit_factory():
+	if "StandardUnitFactory" not in unlocked_units:
 		unlocked_units.append("StandardUnitFactory")
-	if "HeavyUnitFactory"  not in unlocked_units:
+		print("Standard unit factory unlocked!")	
+		
+func _unlock_heavy_unit_factory():
+	if "HeavyUnitFactory" not in unlocked_units:
 		unlocked_units.append("HeavyUnitFactory")
-	print("Building unlocked!")
+		print("Heavy unit factory unlocked!")

@@ -1,0 +1,38 @@
+[gd_scene load_steps=4 format=3 uid="uid://bj1dl1aqojet1"]
+
+[ext_resource type="Script" path="res://Server/Game/Player2/Units/Scripts/worker_unit_2.gd" id="1_yvwvv"]
+[ext_resource type="Texture2D" uid="uid://k8g00nptdicw" path="res://icon.svg" id="2_yfeh6"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_qvywj"]
+radius = 15.0
+
+[node name="WorkerUnit2" type="CharacterBody2D"]
+collision_layer = 4
+collision_mask = 7
+slide_on_ceiling = false
+wall_min_slide_angle = 0.0
+safe_margin = 1.0
+script = ExtResource("1_yvwvv")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("CircleShape2D_qvywj")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+modulate = Color(1, 0, 1, 1)
+scale = Vector2(0.175, 0.175)
+texture = ExtResource("2_yfeh6")
+
+[node name="Navigation" type="Node2D" parent="."]
+
+[node name="NavigationAgent2D" type="NavigationAgent2D" parent="Navigation"]
+avoidance_enabled = true
+max_neighbors = 20
+time_horizon_agents = 0.0
+debug_enabled = true
+
+[node name="Timer" type="Timer" parent="Navigation"]
+wait_time = 0.1
+autostart = true
+
+[connection signal="velocity_computed" from="Navigation/NavigationAgent2D" to="." method="_on_navigation_agent_2d_velocity_computed"]
+[connection signal="timeout" from="Navigation/Timer" to="." method="_on_timer_timeout"]
