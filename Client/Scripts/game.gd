@@ -1,4 +1,4 @@
-extends Node
+extends Node2D
 
 var resource_amount : int
 var unit_1 = preload("res://Client/Scenes/Units/unit_1.tscn")
@@ -14,7 +14,7 @@ var unit_2_price = 10
 var unit_3_price = 10
 var unit_4_price = 10
 var main_base_price = 20
-var building_1_price = 10
+#var building_1_price = 10
 var building_2_price = 10
 var base_exists : bool = false
 var unit_1_base_exists : bool = false
@@ -25,10 +25,8 @@ var button_pressed : bool = false
 var player_color: bool
 var offset: int
 
-var red_units = []
-var blue_units = []
-var red_buildings = []
-var blue_buildings = []
+var red_table = []
+var blue_table = []
 
 @onready var stats_amount_label = $CanvasLayer/menuPanel/menuVBoxContainer/statsBodyLabel
 @onready var unit_1_button = $CanvasLayer/menuPanel/menuVBoxContainer/unit1button
@@ -43,6 +41,97 @@ var blue_buildings = []
 @onready var unit_4_building_button = $CanvasLayer/menuPanel/menuVBoxContainer/unit4buildingButton
 @onready var menu_panel = $CanvasLayer/menuPanel
 
+var dragging = false  # Czy zaznaczamy obszar
+var selected = []  # Zaznaczone ID jednostek
+var drag_start = Vector2.ZERO  # Punkt początkowy zaznaczania
+var select_rect = RectangleShape2D.new()  # Kształt obszaru zaznaczania
+var selected_ids = []
+
+func _unhandled_input(event):
+	if event is InputEventMouseButton:
+		if event.button_index == MOUSE_BUTTON_RIGHT:
+			if event.pressed:
+				# Rozpocznij zaznaczanie tylko, jeśli nie ma aktywnego wyboru
+				if selected.size() == 0:
+					dragging = true
+					drag_start = $Map.get_global_mouse_position()
+				# Jeśli kliknięto po zaznaczeniu, zresetuj zaznaczenie
+				else:
+					deselect_all()
+			elif dragging:
+				# Zakończ zaznaczanie
+				queue_redraw()
+				dragging = false
+				queue_redraw()
+				var drag_end = $Map.get_global_mouse_position()
+				select_units_in_area(drag_start, drag_end)
+
+	if event is InputEventMouseMotion and dragging:
+		queue_redraw()
+
+
+func _draw():
+	if dragging:
+		var drag_end = $Map.get_global_mouse_position()
+		var top_left = Vector2(
+			min(drag_start.x, drag_end.x),
+			min(drag_start.y, drag_end.y)
+		)
+		var size = Vector2(
+			abs(drag_end.x - drag_start.x),
+			abs(drag_end.y - drag_start.y)
+		)
+
+		# Rysowanie prostokąta z wypełnieniem i obramowaniem
+		draw_rect(Rect2(top_left, size), Color(1, 1, 0, 0.3), true)  # Wypełnienie (żółty, przezroczystość 30%)
+		draw_rect(Rect2(top_left, size), Color.YELLOW, false, 2)  # Obramowanie (żółty, grubość 2px)
+
+
+func select_units_in_area(start: Vector2, end: Vector2) -> void:
+	"""
+	Zaznacz jednostki w obszarze między `start` a `end`.
+	"""
+	# Ustaw wymiary prostokąta
+	select_rect.extents = abs(end - start) / 2
+	var rect_center = (start + end) / 2
+
+	# Konfiguracja zapytania fizycznego
+	var space = get_world_2d().direct_space_state
+	var query = PhysicsShapeQueryParameters2D.new()
+	query.shape = select_rect
+	query.collision_mask = 2  # Maska kolizji (dopasuj do swojej konfiguracji)
+	query.transform = Transform2D(0, rect_center)
+
+	# Wyszukaj obiekty w obszarze
+	selected = space.intersect_shape(query)
+	
+	for item in selected:
+		item.collider.set_selected(true)
+		
+	for selection in selected:
+		var unit = selection.collider  # To jest rzeczywista instancja CharacterBody2D\
+		var selected_id = get_id_from_instance(unit)
+		if selected_id != -1:
+			selected_ids.append(selected_id)
+		print("Selected unit:", unit)
+		print("Unit ID:", selected_id)  # Przykład: jeśli unit_id jest zmienną w twoim CharacterBody2D
+
+
+
+	print("Selected units:", selected)
+	print("Selected ids: ", selected_ids)
+
+func deselect_all() -> void:
+	"""
+	Resetuj zaznaczenie wszystkich jednostek.
+	"""
+	for item in selected:
+		item.collider.set_selected(false)
+	selected.clear()
+	selected_ids.clear()
+
+
+
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(delta: float) -> void:
 	display_buttons()
@@ -50,6 +139,9 @@ func _process(delta: float) -> void:
 	stats_amount_label.text = str(resource_amount)
 	var window_size = DisplayServer.window_get_size()
 	offset = window_size.x - menu_panel.custom_minimum_size.x
+	
+	if dragging:
+		queue_redraw()
 	
 
 
@@ -66,8 +158,6 @@ func _input(event: InputEvent) -> void:
 			check_and_add_unit_4_on_pressed(event)
 		elif button_pressed == false and main_base_button.disabled == false and main_base_button.button_pressed and base_exists == false:
 			check_and_add_main_base_on_pressed(event)
-		elif button_pressed == false and building_1_button.disabled == false and building_1_button.button_pressed:
-			check_and_add_building_1_on_pressed(event)
 		elif button_pressed == false and unit_1_building_button.disabled == false and unit_1_building_button.button_pressed:
 			check_and_add_building_2_on_pressed(event, 1)
 		elif button_pressed == false and unit_2_building_button.disabled == false and unit_2_building_button.button_pressed:
@@ -76,19 +166,20 @@ func _input(event: InputEvent) -> void:
 			check_and_add_building_2_on_pressed(event, 3)
 		elif button_pressed == false and unit_4_building_button.disabled == false and unit_4_building_button.button_pressed:
 			check_and_add_building_2_on_pressed(event, 4)
-		elif event.button_index == MOUSE_BUTTON_LEFT and event.pressed and $unit_2.selected == true:
+		"""elif event.button_index == MOUSE_BUTTON_LEFT and event.pressed and $unit_2.selected == true:
 			var new_position : Vector2
 			new_position = $Map.get_global_mouse_position()
 			var current_position = $unit_2.get_current_position()
 			$unit_2.change_position(current_position, new_position)
-			$unit_2.set_selected(false)
+			$unit_2.set_selected(false)"""
 			
 		
 
 func _ready():
 	resource_amount = 200
 	player_color = true
-	
+	red_table.resize(256)
+	blue_table.resize(256)
 	Client.summon_build.connect(summon_build)
 	Client.set_resources.connect(set_resource_amount)
 	pass
@@ -123,20 +214,18 @@ func add_unit1(position: Vector2, id: int, color: bool) -> void:
 	id_num += 1
 	
 	if color == false:
-		red_units.append({
-			"id": id,
+		red_table[id] = {
 			"type": 1,
 			"position": position,
 			"instance": new_unit
-		})
+		}
 		print("saved to array")
 	else:
-		blue_units.append({
-			"id": id,
+		blue_table[id] = {
 			"type": 1,
 			"position": position,
 			"instance": new_unit
-		})
+		}
 		print("saved to array")
 	
 func add_unit2(position: Vector2, id: int, color: bool) -> void:
@@ -150,20 +239,18 @@ func add_unit2(position: Vector2, id: int, color: bool) -> void:
 	id_num += 1
 	
 	if color == false:
-		red_units.append({
-			"id": id,
+		red_table[id] = {
 			"type": 2,
 			"position": position,
 			"instance": new_unit
-		})
+		}
 		print("saved to array")
 	else:
-		blue_units.append({
-			"id": id,
+		blue_table[id] = {
 			"type": 2,
 			"position": position,
 			"instance": new_unit
-		})
+		}
 		print("saved to array")
 		
 func add_unit3(position: Vector2, id: int, color: bool) -> void:
@@ -177,20 +264,18 @@ func add_unit3(position: Vector2, id: int, color: bool) -> void:
 	id_num += 1
 	
 	if color == false:
-		red_units.append({
-			"id": id,
+		red_table[id] = {
 			"type": 3,
 			"position": position,
 			"instance": new_unit
-		})
+		}
 		print("saved to array")
 	else:
-		blue_units.append({
-			"id": id,
+		blue_table[id] = {
 			"type": 3,
 			"position": position,
 			"instance": new_unit
-		})
+		}
 		print("saved to array")
 		
 		
@@ -205,20 +290,18 @@ func add_unit4(position: Vector2, id: int, color: bool) -> void:
 	id_num += 1
 	
 	if color == false:
-		red_units.append({
-			"id": id,
+		red_table[id] = {
 			"type": 4,
 			"position": position,
 			"instance": new_unit
-		})
+		}
 		print("saved to array")
 	else:
-		blue_units.append({
-			"id": id,
+		blue_table[id] = {
 			"type": 4,
 			"position": position,
 			"instance": new_unit
-		})
+		}
 		print("saved to array")
 
 func add_main_base(position: Vector2, color: bool) -> void:
@@ -232,48 +315,20 @@ func add_main_base(position: Vector2, color: bool) -> void:
 	id_num += 1
 	
 	if color == false:
-		red_buildings.append({
-			"id": 0,
+		red_table[0] = {
 			"type": 0,
 			"position": position,
 			"instance": new_building
-		})
+		}
 		print("saved to array")
 	else:
-		blue_buildings.append({
-			"id": 0,
+		blue_table[0] = {
 			"type": 0,
 			"position": position,
 			"instance": new_building
-		})
+		}
 		print("saved to array")
 	
-func add_building_1(position: Vector2, id: int, color: bool) -> void:
-	var new_building = building_1.instantiate()
-	new_building.position = position
-	new_building.init_building(id, color, position)
-	add_child(new_building)
-	# zamiast zmniejszania ilosci surowca powinno byc wysłanie sygnału do serwera zeby zmniejszyc
-	resource_amount -= building_1_price
-	print("added building succesfully")
-	id_num += 1
-	
-	if color == false:
-		red_buildings.append({
-			"id": id,
-			"type": 1,
-			"position": position,
-			"instance": new_building
-		})
-		print("saved to array")
-	else:
-		blue_buildings.append({
-			"id": id,
-			"type": 1,
-			"position": position,
-			"instance": new_building
-		})
-		print("saved to array")
 		
 func add_building_2(position: Vector2, id: int, color: bool, unit_type: int) -> void:
 	var new_building = building_2.instantiate()
@@ -286,36 +341,62 @@ func add_building_2(position: Vector2, id: int, color: bool, unit_type: int) -> 
 	id_num += 1
 	
 	if color == false:
-		red_buildings.append({
-			"id": id,
-			"type": 2,
-			"position": position,
-			"instance": new_building
-		})
+		red_table[id] = {
+		"type": 2,
+		"position": position,
+		"instance": new_building
+	}
 		print("saved to array")
 	else:
-		blue_buildings.append({
-			"id": id,
+		blue_table[id] = {
 			"type": 2,
 			"position": position,
 			"instance": new_building
-		})
+		}
 		print("saved to array")
 	
 func get_last_id():
 	return id_num
 	
 func get_unit_by_id(unit_id: int, color: bool):
-	if color == false:
-		for unit in red_units:
-			if unit["id"] == unit_id:
-				return unit
-		#return null
+	if unit_id <= 255 or unit_id >= 0:
+		if color == false:
+			return red_table[unit_id]
+		else:
+			return blue_table[unit_id]
 	else:
-		for unit in blue_units:
-			if unit["id"] == unit_id:
-				return unit
-		#return null
+		return -1
+		
+func get_id_from_instance(instance: CharacterBody2D) -> int:
+	for id in range(256):
+		if blue_table[id].instance == instance:
+			return id
+	return -1
+	
+func remove_object(id: int, color: bool) -> void:
+	if color == false:
+		if red_table.has(id):
+			var unit_instance = red_table[id]["instance"]
+			
+			if is_instance_valid(unit_instance):
+				unit_instance.queue_free()
+			
+			red_table.remove_at(id)
+			print("Unit with ID", id, " of color red removed successfully.")
+		else:
+			print("Unit with ID", id, " of color red not found.")
+	else:
+		if blue_table.has(id):
+			var unit_instance = blue_table[id]["instance"]
+			
+			if is_instance_valid(unit_instance):
+				unit_instance.queue_free()
+			
+			blue_table.remove_at(id)
+			print("Unit with ID", id, " of color blue removed successfully.")
+		else:
+			print("Unit with ID", id, " of color blue not found.")
+
 
 func move_unit(unit_id: int, new_position: Vector2, color: bool):
 	var unit_data = get_unit_by_id(unit_id, color)
@@ -325,6 +406,23 @@ func move_unit(unit_id: int, new_position: Vector2, color: bool):
 		unit_data["position"] = new_position
 		print("unit ", unit_id, " of color ", color, " changed position")
 		
+		
+func remove_unit(unit_id: int, color: bool):
+	if color == false:
+		if red_table.has(unit_id):
+			var unit_data = red_table[unit_id]
+			if unit_data.has("instance") and unit_data["instance"].is_valid():
+				unit_data["instance"].queue_free()
+			red_table.erase(unit_id)
+			print("Unit with ID ", unit_id, " of color red removed")
+	else:
+		if blue_table.has(unit_id):
+			var unit_data = blue_table[unit_id]
+			if unit_data.has("instance") and unit_data["instance"].is_valid():
+				unit_data["instance"].queue_free()
+			blue_table.erase(unit_id)
+			print("Unit with ID ", unit_id, "of color blue removed")
+	
 	
 func check_and_add_unit_1_on_pressed(event):
 	button_pressed = true
@@ -390,17 +488,6 @@ func check_and_add_main_base_on_pressed(event):
 	button_pressed = false
 	main_base_button.toggle_mode = false
 	
-func check_and_add_building_1_on_pressed(event):
-	button_pressed = true
-	if event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
-		if get_resource_amount() >= building_1_price:
-			var coords = $Map.get_global_mouse_position()
-			var coords_window = event.global_position
-			if coords_window.x < offset:
-				add_building_1(coords, id_num, player_color)
-		else:
-			print("you do not have enough resource")
-	button_pressed = false
 	
 func check_and_add_building_2_on_pressed(event, unit_type):
 	button_pressed = true
@@ -434,7 +521,7 @@ func display_buttons():
 		unit_3_button.disabled = true
 		unit_4_button.disabled = true
 		main_base_button.disabled = false
-		building_1_button.disabled = true
+		#building_1_button.disabled = true
 		unit_1_building_button.disabled = true
 		unit_2_building_button.disabled = true
 		unit_3_building_button.disabled = true
@@ -445,7 +532,7 @@ func display_buttons():
 		unit_3_button.disabled = false
 		unit_4_button.disabled = false
 		main_base_button.disabled = true
-		building_1_button.disabled = false
+		#building_1_button.disabled = false
 		unit_1_building_button.disabled = false
 		unit_2_building_button.disabled = false
 		unit_3_building_button.disabled = false

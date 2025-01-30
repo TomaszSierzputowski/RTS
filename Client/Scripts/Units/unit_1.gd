@@ -57,10 +57,6 @@ func set_selected(value: bool) -> void:
 	if selected != value:
 		selected = value
 		highlight.visible = value
-		if selected:
-			emit_signal("was_selected", self)
-		else:
-			emit_signal("was_deselected", self)
 		
 	
 func _on_input_event(viewport: Node, event: InputEvent, shape_idx: int) -> void:
