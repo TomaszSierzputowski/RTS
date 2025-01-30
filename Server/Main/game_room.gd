@@ -93,7 +93,8 @@ func readUDP(player : int) -> Utils.MessageType:
 				return Utils.MessageType.ERROR_TO_FEW_BYTES
 			var position := Vector2(0.25 * packet.decode_s16(1), 0.25 * packet.decode_s16(3))
 			var ids := packet.slice(5)
-			game_move(player, ids, position)
+			#game_move(player, ids, position)
+			session.move(player, ids, position)
 		
 		Utils.MessageType.ATTACK:
 			if packet_size < 3:
@@ -114,21 +115,8 @@ func send_board_changes(player : int) -> void:
 	var packet := changes[player].extract_changes()
 	for i in range(32):
 		packet[i] = received_ids[player][i]
-	packet.encode_u16(32, game_get_resource(player))
+	packet.encode_u16(32, session.get_resource(player))
 	players[player].udp.put_packet(packet)
-
-# tmp - dodać funkcjom działanie
-func game_build(player : int, building_type : Utils.EntityType, position : Vector2) -> void:
-	print("Player ", player, " built ", building_type, " on position ", position)
-
-func game_summon(player : int, character_type : Utils.EntityType, position : Vector2) -> void:
-	print("Player ", player, " summoned ", character_type, " on position ", position)
-
-func game_move(player : int, ids : PackedByteArray, position : Vector2) -> void:
-	print("Player ", player, " moved ", ids, " to position ", position)
 
 func game_attack(player : int, ids : PackedByteArray, target : int) -> void:
 	print("Player ", player, " attacked with ", ids, " opponent's ", target)
-
-func game_get_resource(player : int) -> int:
-	return 275

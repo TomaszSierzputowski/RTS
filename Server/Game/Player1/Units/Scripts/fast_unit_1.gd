@@ -7,6 +7,11 @@ class_name FastUnit1
 var target_position: Vector2 = Vector2.ZERO
 var target_node: Node
 var targeted_nodes: Array[Node] = []
+var id = -1
+
+signal moved(player : int, id : int, new_position : Vector2)
+signal damaged(player : int, id : int, hp : int)
+signal died(player : int, id : int)
 
 # STATS
 #----------------------------------
@@ -39,7 +44,9 @@ func _physics_process(delta: float) -> void:
 	var axis = to_local(nav_agent.get_next_path_position()).normalized()
 	var intended_velocity = axis * speed
 	velocity = intended_velocity
-	move_and_slide()
+	if velocity.length() > 0:
+		move_and_slide()
+		moved.emit(0, id, position)
 
 func find_closest_node() -> Node2D:
 	var closest_node = null
@@ -72,7 +79,11 @@ func deal_damage(target: Node) -> void:
 func take_damage(damage1: int) -> void:
 	hp -= damage1
 	if hp <= 0:
+		#@warning_ignore("integer_division")
+		died.emit(0, id)
 		die()
+	else:
+		damaged.emit(0, id, hp * 100 / max_hp)
 
 func die() -> void:
 	queue_free()

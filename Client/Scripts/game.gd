@@ -34,7 +34,6 @@ var blue_table = []
 @onready var unit_3_button = $CanvasLayer/menuPanel/menuVBoxContainer/unit3button
 @onready var unit_4_button = $CanvasLayer/menuPanel/menuVBoxContainer/unit4button
 @onready var main_base_button = $CanvasLayer/menuPanel/menuVBoxContainer/mainBaseButton
-@onready var building_1_button = $CanvasLayer/menuPanel/menuVBoxContainer/building1Button
 @onready var unit_1_building_button = $CanvasLayer/menuPanel/menuVBoxContainer/unit1buildingButton
 @onready var unit_2_building_button = $CanvasLayer/menuPanel/menuVBoxContainer/unit2buildingButton
 @onready var unit_3_building_button = $CanvasLayer/menuPanel/menuVBoxContainer/unit3buildingButton
@@ -127,9 +126,10 @@ func _input(event: InputEvent) -> void:
 		elif event.button_index == MOUSE_BUTTON_RIGHT and selected_ids != []:
 			target = $Map.get_global_mouse_position()
 			print(target)
-			selected_and_target = selected_ids
-			selected_and_target.append(target)
+			#selected_and_target = selected_ids
+			#selected_and_target.append(target)
 			# tu pewnie cos trzeba wkleic i pewnie zmienic tę tablicę, tomek to zadanie dla ciebie
+			Client.move(selected_ids, target)
 			deselect_all()
 			target = Vector2()
 		
@@ -141,7 +141,9 @@ func _ready():
 	blue_table.resize(256)
 	Client.summon_build.connect(summon_build)
 	Client.set_resources.connect(set_resource_amount)
-
+	Client.change_position.connect(change_position)
+	Client.change_health.connect(change_hp)
+	Client.die_destroy.connect(die_destroy)
 
 func set_resource_amount(val : int) -> void:
 	resource_amount = val
@@ -152,6 +154,10 @@ func get_resource_amount() -> int:
 
 
 func summon_build(player : int, id : int, type : Utils.EntityType, position : Vector2, health : int) -> void:
+	if player == 0 and blue_table[id] != null:
+		return
+	if player == 1 and red_table[id] != null:
+		return
 	match type:
 		Utils.EntityType.MAIN_BASE:
 			add_main_base(position, player == 0)
@@ -163,6 +169,14 @@ func summon_build(player : int, id : int, type : Utils.EntityType, position : Ve
 			add_building_2(position, id, player == 0, 4)
 		Utils.EntityType.PENTAGON_YES:
 			add_building_2(position, id, player == 0, 2)
+		Utils.EntityType.WORKER:
+			add_unit1(position, id, player == 0)
+		Utils.EntityType.PENTAGON:
+			add_unit2(position, id, player == 0)
+		Utils.EntityType.TRIANGLE:
+			add_unit3(position, id, player == 0)
+		Utils.EntityType.SQUARE:
+			add_unit4(position, id, player == 0)
 
 
 func add_unit1(position: Vector2, id: int, color: bool) -> void:
@@ -329,35 +343,47 @@ func get_by_id(id: int, color: bool):
 		
 func get_id_from_instance(instance: CharacterBody2D) -> int:
 	for id in range(256):
-		if blue_table[id].instance == instance:
+		if blue_table[id] != null and blue_table[id].instance == instance:
 			return id
 	return -1
 	
-	
+
+func die_destroy(player : int, id : int) -> void:
+	if (id == 0):
+		if (player == 1):
+			print("You have won")
+		else:
+			print("You have lost")
+		get_tree().change_scene_to_file.call_deferred("res://Client/Scenes/welcome_menu.tscn")
+	print("dead: ", id)
+	remove_object(id, player == 0)
+
 func remove_object(id: int, color: bool) -> void:
 	if color == false:
-		if red_table.has(id):
+		if red_table[id] != null:
 			var unit_instance = red_table[id]["instance"]
 			
 			if is_instance_valid(unit_instance):
 				unit_instance.queue_free()
 			
-			red_table.remove_at(id)
+			red_table[id] = null
 			print("Object with ID", id, " of color red removed successfully.")
 		else:
 			print("Object with ID", id, " of color red not found.")
 	else:
-		if blue_table.has(id):
+		if blue_table[id] != null:
 			var unit_instance = blue_table[id]["instance"]
 			
 			if is_instance_valid(unit_instance):
 				unit_instance.queue_free()
 			
-			blue_table.remove_at(id)
+			blue_table[id] = null
 			print("Object with ID", id, " of color blue removed successfully.")
 		else:
 			print("Object with ID", id, " of color blue not found.")
 
+func change_position(player : int, id : int, new_position : Vector2) -> void:
+	move_unit(id, new_position, player == 0)
 
 func move_unit(unit_id: int, new_position: Vector2, color: bool):
 	var unit_data = get_by_id(unit_id, color)
@@ -365,11 +391,16 @@ func move_unit(unit_id: int, new_position: Vector2, color: bool):
 		var current_position = unit_data["position"]
 		unit_data["instance"].change_position(current_position, new_position)
 		unit_data["position"] = new_position
-		print("unit ", unit_id, " of color ", color, " changed position")
+		print("unit ", unit_id, " of color ", color, " changed position to", new_position)
 		
+
+func change_hp(player : int, id : int, hp : int) -> void:
+	change_health(id, player == 0, hp)
 
 func change_health(id: int, color: bool, value: int) -> void:
 	var unit_data = get_by_id(id, color)
+	if unit_data == null:
+		return
 	unit_data["instance"].change_health(value)
 	
 	
@@ -381,7 +412,8 @@ func check_and_add_unit_1_on_pressed(event):
 			var coords_window = event.global_position
 			print(coords, coords_window, offset)
 			if coords_window.x < offset:
-				add_unit1(coords, id_num, player_color)
+				#add_unit1(coords, id_num, player_color)
+				Client.summon(Utils.EntityType.WORKER, coords)
 		else:
 			print("you do not have enough resource")
 	button_pressed = false
@@ -394,7 +426,8 @@ func check_and_add_unit_2_on_pressed(event):
 			var coords = $Map.get_global_mouse_position()
 			var coords_window = event.global_position
 			if coords_window.x < offset:
-				add_unit2(coords, id_num, player_color)
+				#add_unit2(coords, id_num, player_color)
+				Client.summon(Utils.EntityType.PENTAGON, coords)
 		else:
 			print("you do not have enough resource")
 	button_pressed = false
@@ -407,7 +440,8 @@ func check_and_add_unit_3_on_pressed(event):
 			var coords = $Map.get_global_mouse_position()
 			var coords_window = event.global_position
 			if coords_window.x < offset:
-				add_unit3(coords, id_num, player_color)
+				#add_unit3(coords, id_num, player_color)
+				Client.summon(Utils.EntityType.TRIANGLE, coords)
 		else:
 			print("you do not have enough resource")
 	button_pressed = false
@@ -420,7 +454,8 @@ func check_and_add_unit_4_on_pressed(event):
 			var coords = $Map.get_global_mouse_position()
 			var coords_window = event.global_position
 			if coords_window.x < offset:
-				add_unit4(coords, id_num, player_color)
+				#add_unit4(coords, id_num, player_color)
+				Client.summon(Utils.EntityType.SQUARE, coords)
 		else:
 			print("you do not have enough resource")
 	button_pressed = false

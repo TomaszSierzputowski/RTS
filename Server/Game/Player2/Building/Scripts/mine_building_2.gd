@@ -2,10 +2,15 @@ extends Node2D
 
 class_name MineBuilding2
 
-var ID: int
 var HP: int = 100
+var max_HP: int = 100
 var MaxWorkers: int = 5
 var currentWorkers: Array
+var id = -1
+
+signal moved(player : int, id : int, new_position : Vector2)
+signal damaged(player : int, id : int, hp : int)
+signal died(player : int, id : int)
 
 func _ready() -> void:
 	pass 
@@ -29,20 +34,18 @@ func _on_area_2d_body_exited(body: Node2D) -> void:
 		body.isAssignedToBuilding = false
 
 
+	
 func _on_timer_timeout() -> void:
 	for worker in currentWorkers:
 		manage_workers()
-		worker.player.add_resource(1)
+		if !is_valid(worker.position):
+			worker.player.add_resource(1)
 
 func is_valid(point: Vector2) -> bool:
 	var tileMapLayer = get_parent().get_node("TileMapLayer")
 	if tileMapLayer:
 		var cell_id = tileMapLayer.get_tile_id(point)
 		if cell_id == 2:
-			return false
-			
-	for child in get_parent().get_children():
-		if round(child.position.distance_to(point)) == 0:
 			return false
 			
 	return true
@@ -56,12 +59,16 @@ func manage_workers() -> void:
 		var angle = randf_range(0, TAU)
 		var new_target = self.global_position + Vector2( cos(angle) * distance, sin(angle) * distance)
 		if not is_valid(new_target):
-			worker.move_to_point(new_target)
+			worker.move_to_position(new_target)
 
 func take_damage(damage: int) -> void:
 	HP -= damage
 	if HP <= 0:
+		#@warning_ignore("integer_division")
+		died.emit(1, id)
 		die()
+	else:
+		damaged.emit(1, id, HP * 100 / max_HP)
 
 func die() -> void:
 	queue_free()

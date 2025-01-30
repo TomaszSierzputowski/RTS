@@ -94,11 +94,7 @@ func readUDP() -> Error:
 	var packet := udp.get_packet()
 	# można dodać sprawdzanie, gdzie dokładnie się różni, żeby wiedzieć, które ruchy zostały obsłużone
 	# w ten sposób, można zauważyć niepowodzenie w jakiejś akcji i to sygnalizować (choć nie będzie to takie proste)
-	if packet.slice(0, 32) != server_received:
-		server_received = packet.slice(0, 32)
-		server_change = true
-	else:
-		server_change = false
+	server_received = packet.slice(0, 32)
 	
 	set_resources.emit(packet.decode_u16(32))
 	
@@ -199,6 +195,7 @@ func readUDP() -> Error:
 					return ERR_INVALID_DATA
 				i += 1
 				while i <= last:
+					print("hp change, id: ", packet[i])
 					change_health.emit(0, packet[i], packet[i+1])
 					i += 2
 			Utils.MessageType.HP_CHANGE_OPP:
@@ -212,6 +209,7 @@ func readUDP() -> Error:
 					return ERR_INVALID_DATA
 				i += 1
 				while i <= last:
+					print("hp change opp, id: ", packet[i])
 					change_health.emit(1, packet[i], packet[i+1])
 					i += 2
 			Utils.MessageType.POS_HP_CHANGE:
@@ -243,7 +241,7 @@ func readUDP() -> Error:
 				while i <= last:
 					var x = 0.25 * packet.decode_s16(i+1)
 					var y = 0.25 * packet.decode_s16(i+3)
-					change_position.emit(1, packet[i], Vector2(x, y), packet[i+5])
+					change_position.emit(1, packet[i], Vector2(x, y))
 					change_health.emit(1, packet[i], packet[i+5])
 					i += 6
 	
@@ -255,22 +253,16 @@ var is_new_packet := false
 var packets_to_resend : Array[PackedByteArray]
 var no_repackets : int = 0
 var server_received : PackedByteArray
-var server_change := false
 func writeUDP() -> void:
 	var i := 0
-	if server_change:
-		while i < no_repackets:
-			if packets_to_resend[i][32] in server_received:
-				no_repackets -= 1
-				packets_to_resend[i] = packets_to_resend[no_repackets]
-			else:
-				udp.put_packet(packets_to_resend[i])
-				#print("Sended packet of id: ", packets_to_send[i][32])
-				i += 1
-	else:
-		while i < no_repackets:
+	while i < no_repackets:
+		if packets_to_resend[i][32] in server_received:
+			print("Packet end: ", packets_to_resend[i][32])
+			no_repackets -= 1
+			packets_to_resend[i] = packets_to_resend[no_repackets]
+		else:
 			udp.put_packet(packets_to_resend[i])
-			#print("Sended packet of id: ", packets_to_send[i][32])
+			print("Sent packet of id: ", packets_to_resend[i][32])
 			i += 1
 	if is_new_packet:
 		udp.put_packet(new_packet)

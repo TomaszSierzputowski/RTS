@@ -46,7 +46,7 @@ func set_selected(value: bool) -> void:
 		
 			
 func change_health(value: float) -> void:
-	health += value
+	health = value
 	if(health > 0):
 		print("health is ", health)
 	else:

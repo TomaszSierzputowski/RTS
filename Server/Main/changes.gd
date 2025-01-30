@@ -65,7 +65,7 @@ func extract_changes() -> PackedByteArray:
 				no_h += 1
 			Utils.MessageType.HP_CHANGE_OPP:
 				ho.append_array(change.code.slice(1))
-				no_h += 1
+				no_ho += 1
 			Utils.MessageType.POS_HP_CHANGE:
 				ph.append_array(change.code.slice(1))
 				no_ph += 1
@@ -173,13 +173,12 @@ func position_changed(player : int, id : int, new_position : Vector2) -> void:
 				change.code.encode_s16(2, roundi(new_position.x * 4))
 				change.code.encode_s16(4, roundi(new_position.y * 4))
 			_:
-				print("Unexpected ongoing change ", change.type, " when position changed of player's ", player, " entity of id ", id)
 				change.significance = 1
 				change.code.resize(6)
 				change.code.encode_s16(2, roundi(new_position.x * 4))
 				change.code.encode_s16(4, roundi(new_position.y * 4))
 				if player == main_player:
-					change.code.encode_u8(0, Utils.MessageType.POS_CHANGE_OPP)
+					change.code.encode_u8(0, Utils.MessageType.POS_CHANGE)
 				else:
 					change.code.encode_u8(0, Utils.MessageType.POS_CHANGE_OPP)
 	else:
@@ -190,13 +189,14 @@ func position_changed(player : int, id : int, new_position : Vector2) -> void:
 		change.code.encode_s16(2, roundi(new_position.x * 4))
 		change.code.encode_s16(4, roundi(new_position.y * 4))
 		if player == main_player:
-			change.code.encode_u8(0, Utils.MessageType.POS_CHANGE_OPP)
+			change.code.encode_u8(0, Utils.MessageType.POS_CHANGE)
 		else:
 			change.code.encode_u8(0, Utils.MessageType.POS_CHANGE_OPP)
 
-func hp_changed(player : int, id : int, new_hp : int, change_amount : int) -> void:
+#func hp_changed(player : int, id : int, new_hp : int, change_amount : int) -> void:
+func hp_changed(player : int, id : int, new_hp : int) -> void:
 	var change : Change = quick_access_changes[256 * player + id]
-	var significance = change_amount * 7 / 100
+	var significance = 3
 	if change.significance > 0:
 		if change.significance < significance:
 			change.significance = significance
@@ -212,8 +212,11 @@ func hp_changed(player : int, id : int, new_hp : int, change_amount : int) -> vo
 				change.code.resize(7)
 				change.code.encode_u8(0, Utils.MessageType.POS_HP_CHANGE_OPP)
 				change.code.encode_u8(6, new_hp)
+			Utils.MessageType.HP_CHANGE:
+				change.code.encode_u8(2, new_hp)
+			Utils.MessageType.HP_CHANGE_OPP:
+				change.code.encode_u8(2, new_hp)
 			_:
-				print("Unexpected ongoing change ", change.type, " when hp changed of player's ", player, " entity of id ", id)
 				change.code.resize(3)
 				change.code.encode_u8(2, new_hp)
 				if player == main_player:

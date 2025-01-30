@@ -14,7 +14,7 @@ var triangleBuilding = [preload("res://Server/Game/Player1/Building/Scenes/FastU
 var squareBuilding = [preload("res://Server/Game/Player1/Building/Scenes/HeavyUnitFactory_1.tscn"),preload("res://Server/Game/Player2/Building/Scenes/HeavyUnitFactory_2.tscn")]
 var pentagonBuilding = [preload("res://Server/Game/Player1/Building/Scenes/StandardUnitFactory_1.tscn"),preload("res://Server/Game/Player2/Building/Scenes/StandardUnitFactory_2.tscn")]
 var workerUnit = [preload("res://Server/Game/Player1/Units/Scenes/WorkerUnit_1.tscn"), preload("res://Server/Game/Player2/Units/Scenes/WorkerUnit_2.tscn")]
-var square = [preload("res://Server/Game/Player1/Units/Scenes/StandardUnit_1.tscn"),preload("res://Server/Game/Player2/Units/Scenes/StandardUnit_2.tscn")]
+var square = [preload("res://Server/Game/Player1/Units/Scenes/HeavyUnit_1.tscn"),preload("res://Server/Game/Player2/Units/Scenes/HeavyUnit_2.tscn")]
 var triangle = [preload("res://Server/Game/Player1/Units/Scenes/FastUnit_1.tscn"),preload("res://Server/Game/Player2/Units/Scenes/FastUnit_2.tscn")] 
 var pentagon = [preload("res://Server/Game/Player1/Units/Scenes/StandardUnit_1.tscn"),preload("res://Server/Game/Player2/Units/Scenes/StandardUnit_2.tscn")]
 
@@ -62,6 +62,9 @@ func load_map():
 		print("Failed to load game map")
 		
 
+func get_resource(player_num : int) -> int:
+	return players[player_num].resources
+
 func summon(player_num : int, character_type : Utils.EntityType, position : Vector2) -> void:
 	var unit : Node
 	match character_type:
@@ -90,17 +93,39 @@ func summon(player_num : int, character_type : Utils.EntityType, position : Vect
 		print("summoned: ", character_type)
 		var player = players[player_num]
 		unit.position = position
-		player.add_unit(unit)
-		if unit in player.units:
+		var id = player.add_unit(unit)
+		if id >= 0:
 			var unit_name = unit.name
 			game_map.add_child(unit)
 			unit.name = unit_name
+			unit.id = id
+			unit.moved.connect(moved)
+			unit.damaged.connect(damaged)
+			unit.died.connect(died)
 			#dużo na sztywno do zmiany
 			# poinformowanie gracza 0
-			game_summoned_built[0].emit(player_num, 0, character_type, position)
+			game_summoned_built[0].emit(player_num, id, character_type, position)
 			# poinformowanie gracza 1
-			game_summoned_built[1].emit(player_num, 0, character_type, position)
+			game_summoned_built[1].emit(player_num, id, character_type, position)
 			print("Send info about summoning")
+
+func move(player_num : int, ids : PackedByteArray, position : Vector2) -> void:
+	var player : Player = players[player_num]
+	for i in ids:
+		if player.units[i].has_method("move_to_position"):
+			player.units[i].move_to_position(position)
+
+func moved(player : int, id : int, new_position : Vector2) -> void:
+	game_position_changed[0].emit(player, id, new_position)
+	game_position_changed[1].emit(player, id, new_position)
+
+func damaged(player : int, id : int, hp : int) -> void:
+	game_hp_changed[0].emit(player, id, hp)
+	game_hp_changed[1].emit(player, id, hp)
+
+func died(player : int, id : int) -> void:
+	game_died_destroyed[0].emit(player, id)
+	game_died_destroyed[1].emit(player, id)
 
 func get_cell_id(point: Vector2):
 	var tilemap = game_map.get_node("TileMapLayer")
@@ -180,24 +205,29 @@ func is_area_clear(position: Vector2, shape: Shape2D)-> bool:
 	return true
 
 func is_unit_in_range_of_building(player_num : int, character_type : Utils.EntityType,  position : Vector2):
-	if character_type not in [Utils.EntityType.TRIANGLE, Utils.EntityType.SQUARE, Utils.EntityType.PENTAGON]:
+	if character_type not in [Utils.EntityType.TRIANGLE, Utils.EntityType.SQUARE, Utils.EntityType.PENTAGON, Utils.EntityType.WORKER]:
 		return true
 	for child in game_map.get_children():
 		if child.has_method("get_class_name") and child.has_method("get_player_num"):
 			var classname = child.get_class_name()
 			var player_num_2 = child.get_player_num()-1
 			match character_type:
+				Utils.EntityType.WORKER:
+					if classname == "Base" and child.global_position.distance_to(position)<=300 and player_num == player_num_2:
+						return true
+					if classname == "Mine" and child.global_position.distance_to(position)<=200 and player_num == player_num_2:
+						return true
 				Utils.EntityType.TRIANGLE:
 					if classname == "FastUnitFactory" and child.global_position.distance_to(position)<=200 and player_num == player_num_2:
 						return true
-				Utils.EntityType.SQUARE:
+				Utils.EntityType.PENTAGON:
 					if classname == "StandardUnitFactory" and child.global_position.distance_to(position)<=200 and player_num == player_num_2:
 						return true
-				Utils.EntityType.PENTAGON:
+				Utils.EntityType.SQUARE:
 					if classname == "HeavyUnitFactory" and child.global_position.distance_to(position)<=200 and player_num == player_num_2:
 						return true
-			
 	return false
+
 	
 func end_game() -> void:
 	queue_free()

@@ -2,8 +2,14 @@ extends StaticBody2D
 
 class_name  StandardUnitFactory2
 
-var ID: int
 var HP: int = 100
+var max_HP: int = 100
+var id = -1
+
+signal moved(player : int, id : int, new_position : Vector2)
+signal damaged(player : int, id : int, hp : int)
+signal died(player : int, id : int)
+
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
 	pass # Replace with function body.
@@ -15,7 +21,11 @@ func _process(delta: float) -> void:
 func take_damage(damage: int) -> void:
 	HP -= damage
 	if HP <= 0:
+		#@warning_ignore("integer_division")
+		died.emit(1, id)
 		die()
+	else:
+		damaged.emit(1, id, HP * 100 / max_HP)
 
 func die() -> void:
 	queue_free()
