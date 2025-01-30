@@ -19,6 +19,7 @@ config/icon="res://icon.svg"
 
 Client="*res://Client/Scripts/client.gd"
 Database="*res://Server/AccountSystem/SQLControler.gd"
+UserData="*res://Client/Scripts/user_data.gd"
 
 [dotnet]
 

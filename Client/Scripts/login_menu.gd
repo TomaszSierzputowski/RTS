@@ -21,7 +21,7 @@ signal register_attempt(username, password)
 @onready var label_error = $Node/data_vbox/label_error
 
 func _ready() -> void:
-	pass
+	self.visible = true
 
 func update_label(new_text: String):
 	label_error.text = new_text
@@ -43,11 +43,13 @@ func _on_login_go_button_pressed() -> void:
 	var password = login_password.text
 	
 	if check_password(password) and check_username(username):
-		var response = await Client.sign_in(username, password)
+		var response =  Utils.MessageType.RESPONSE_OK# await Client.sign_in(username, password)
 		
 		if response == Utils.MessageType.RESPONSE_OK:
+			UserData.username = username
 			login_attempt.emit(username, password)
 			get_tree().change_scene_to_file("res://Client/Scenes/welcome_menu.tscn")
+			
 		else:
 			update_label(str(response))
 			label_error.visible = true
