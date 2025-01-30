@@ -30,15 +30,6 @@ func init_unit(_id: int, _color: bool, _position: Vector2) -> void:
 	unit_type_outline.visible = true
 
 func _ready() -> void:
-	"""print("id: ", unit_id)
-	if player_color == false:
-		unit_type = $unit_2_red
-		unit_type_outline = $red_outline
-	else:
-		unit_type = $unit_2_blue
-		unit_type_outline = $blue_outline
-	unit_type.visible = true
-	unit_type_outline.visible = true"""
 	pass
 
  
@@ -51,20 +42,6 @@ func set_selected(value: bool) -> void:
 	if selected != value:
 		selected = value
 		highlight.visible = value
-	
-func _on_input_event(viewport: Node, event: InputEvent, shape_idx: int) -> void:
-	if event is InputEventMouseButton:
-		if event.button_index == MOUSE_BUTTON_LEFT and event.pressed and selected == false:
-			set_selected(true)
-		elif event.button_index == MOUSE_BUTTON_LEFT and event.pressed and selected == true:
-			#new_position = event.global_position
-			#change_position(current_position, new_position)
-			set_selected(false)
-		elif event.button_index == MOUSE_BUTTON_RIGHT and event.pressed:
-			change_health(-5)
-			#new_position = Vector2(position.x - 5, position.y - 5)
-			#change_position(current_position, new_position)
-			#health -= 5
 			
 func change_health(value: float) -> void:
 	health += value
@@ -79,13 +56,9 @@ func change_position(current_position: Vector2, new_position: Vector2) -> void:
 	var delta_x = new_position.x - current_position.x
 	var delta_y = new_position.y - current_position.y
 	var rotate_amount = atan2(delta_y, delta_x)
-	
-	#send signal to server
-	#wait for reply
-	#if reply true: change position
+
 	position = new_position
 	rotation = rotate_amount
-	#rotate(rotate_amount)
 	
 func get_current_position() -> Vector2:
 	return global_position

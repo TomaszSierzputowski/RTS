@@ -14,7 +14,6 @@ var unit_2_price = 10
 var unit_3_price = 10
 var unit_4_price = 10
 var main_base_price = 20
-#var building_1_price = 10
 var building_2_price = 10
 var base_exists : bool = false
 var unit_1_base_exists : bool = false
@@ -40,16 +39,19 @@ var blue_table = []
 @onready var unit_3_building_button = $CanvasLayer/menuPanel/menuVBoxContainer/unit3buildingButton
 @onready var unit_4_building_button = $CanvasLayer/menuPanel/menuVBoxContainer/unit4buildingButton
 @onready var menu_panel = $CanvasLayer/menuPanel
+@onready var selection_layer = $selectionLayer
 
-var dragging = false  # Czy zaznaczamy obszar
-var selected = []  # Zaznaczone ID jednostek
-var drag_start = Vector2.ZERO  # Punkt początkowy zaznaczania
-var select_rect = RectangleShape2D.new()  # Kształt obszaru zaznaczania
+var dragging = false
+var selected = []
+var drag_start = Vector2.ZERO
+var select_rect = RectangleShape2D.new()
 var selected_ids = []
+var target = Vector2()
+var selected_and_target = []
 
 func _unhandled_input(event):
 	if event is InputEventMouseButton:
-		if event.button_index == MOUSE_BUTTON_RIGHT:
+		if event.button_index == MOUSE_BUTTON_LEFT:
 			if event.pressed:
 				# Rozpocznij zaznaczanie tylko, jeśli nie ma aktywnego wyboru
 				if selected.size() == 0:
@@ -60,17 +62,17 @@ func _unhandled_input(event):
 					deselect_all()
 			elif dragging:
 				# Zakończ zaznaczanie
-				queue_redraw()
+				#queue_redraw()
 				dragging = false
-				queue_redraw()
+				#queue_redraw()
 				var drag_end = $Map.get_global_mouse_position()
 				select_units_in_area(drag_start, drag_end)
 
-	if event is InputEventMouseMotion and dragging:
-		queue_redraw()
+	"""if event is InputEventMouseMotion and dragging:
+		queue_redraw()"""
 
 
-func _draw():
+"""func _draw():
 	if dragging:
 		var drag_end = $Map.get_global_mouse_position()
 		var top_left = Vector2(
@@ -80,11 +82,11 @@ func _draw():
 		var size = Vector2(
 			abs(drag_end.x - drag_start.x),
 			abs(drag_end.y - drag_start.y)
-		)
+		)"""
 
 		# Rysowanie prostokąta z wypełnieniem i obramowaniem
-		draw_rect(Rect2(top_left, size), Color(1, 1, 0, 0.3), true)  # Wypełnienie (żółty, przezroczystość 30%)
-		draw_rect(Rect2(top_left, size), Color.YELLOW, false, 2)  # Obramowanie (żółty, grubość 2px)
+		#draw_rect(Rect2(top_left, size), Color(1, 1, 0, 0.3), true)  # Wypełnienie (żółty, przezroczystość 30%)
+		#draw_rect(Rect2(top_left, size), Color.YELLOW, false, 2)  # Obramowanie (żółty, grubość 2px)
 
 
 func select_units_in_area(start: Vector2, end: Vector2) -> void:
@@ -99,26 +101,21 @@ func select_units_in_area(start: Vector2, end: Vector2) -> void:
 	var space = get_world_2d().direct_space_state
 	var query = PhysicsShapeQueryParameters2D.new()
 	query.shape = select_rect
-	query.collision_mask = 2  # Maska kolizji (dopasuj do swojej konfiguracji)
+	query.collision_mask = 2
 	query.transform = Transform2D(0, rect_center)
 
-	# Wyszukaj obiekty w obszarze
 	selected = space.intersect_shape(query)
 	
 	for item in selected:
 		item.collider.set_selected(true)
 		
 	for selection in selected:
-		var unit = selection.collider  # To jest rzeczywista instancja CharacterBody2D\
+		var unit = selection.collider
 		var selected_id = get_id_from_instance(unit)
 		if selected_id != -1:
 			selected_ids.append(selected_id)
-		print("Selected unit:", unit)
-		print("Unit ID:", selected_id)  # Przykład: jeśli unit_id jest zmienną w twoim CharacterBody2D
 
-
-
-	print("Selected units:", selected)
+	#print("Selected units:", selected)
 	print("Selected ids: ", selected_ids)
 
 func deselect_all() -> void:
@@ -166,13 +163,14 @@ func _input(event: InputEvent) -> void:
 			check_and_add_building_2_on_pressed(event, 3)
 		elif button_pressed == false and unit_4_building_button.disabled == false and unit_4_building_button.button_pressed:
 			check_and_add_building_2_on_pressed(event, 4)
-		"""elif event.button_index == MOUSE_BUTTON_LEFT and event.pressed and $unit_2.selected == true:
-			var new_position : Vector2
-			new_position = $Map.get_global_mouse_position()
-			var current_position = $unit_2.get_current_position()
-			$unit_2.change_position(current_position, new_position)
-			$unit_2.set_selected(false)"""
-			
+		elif event.button_index == MOUSE_BUTTON_RIGHT and selected_ids != []:
+			target = $Map.get_global_mouse_position()
+			print(target)
+			selected_and_target = selected_ids
+			selected_and_target.append(target)
+			# tu pewnie cos trzeba wkleic i pewnie zmienic tę tablicę, tomek to zadanie dla ciebie
+			deselect_all()
+			target = Vector2()
 		
 
 func _ready():
@@ -208,7 +206,6 @@ func add_unit1(position: Vector2, id: int, color: bool) -> void:
 	new_unit.position = position
 	new_unit.init_unit(id, color, position)
 	add_child(new_unit)
-	# zamiast zmniejszania ilosci surowca powinno byc wysłanie sygnału do serwera zeby zmniejszyc
 	resource_amount -= unit_1_price
 	print("added unit succesfully")
 	id_num += 1
@@ -233,7 +230,6 @@ func add_unit2(position: Vector2, id: int, color: bool) -> void:
 	new_unit.position = position
 	new_unit.init_unit(id, color, position)
 	add_child(new_unit)
-	# zamiast zmniejszania ilosci surowca powinno byc wysłanie sygnału do serwera zeby zmniejszyc
 	resource_amount -= unit_2_price
 	print("added unit succesfully")
 	id_num += 1
@@ -258,7 +254,6 @@ func add_unit3(position: Vector2, id: int, color: bool) -> void:
 	new_unit.position = position
 	new_unit.init_unit(id, color, position)
 	add_child(new_unit)
-	# zamiast zmniejszania ilosci surowca powinno byc wysłanie sygnału do serwera zeby zmniejszyc
 	resource_amount -= unit_3_price
 	print("added unit succesfully")
 	id_num += 1
@@ -284,7 +279,6 @@ func add_unit4(position: Vector2, id: int, color: bool) -> void:
 	new_unit.position = position
 	new_unit.init_unit(id, color, position)
 	add_child(new_unit)
-	# zamiast zmniejszania ilosci surowca powinno byc wysłanie sygnału do serwera zeby zmniejszyc
 	resource_amount -= unit_4_price
 	print("added unit succesfully")
 	id_num += 1
@@ -309,7 +303,6 @@ func add_main_base(position: Vector2, color: bool) -> void:
 	new_building.position = position
 	new_building.init_base(0, color, position)
 	add_child(new_building)
-	# zamiast zmniejszania ilosci surowca powinno byc wysłanie sygnału do serwera zeby zmniejszyc
 	resource_amount -= main_base_price
 	print("added unit succesfully")
 	id_num += 1
@@ -335,8 +328,6 @@ func add_building_2(position: Vector2, id: int, color: bool, unit_type: int) -> 
 	new_building.position = position
 	new_building.init_building(id, color, position, unit_type)
 	add_child(new_building)
-	# zamiast zmniejszania ilosci surowca powinno byc wysłanie sygnału do serwera zeby zmniejszyc
-	#resource_amount -= building_2_price
 	print("added building succesfully")
 	id_num += 1
 	
@@ -358,12 +349,12 @@ func add_building_2(position: Vector2, id: int, color: bool, unit_type: int) -> 
 func get_last_id():
 	return id_num
 	
-func get_unit_by_id(unit_id: int, color: bool):
-	if unit_id <= 255 or unit_id >= 0:
+func get_by_id(id: int, color: bool):
+	if id <= 255 or id >= 0:
 		if color == false:
-			return red_table[unit_id]
+			return red_table[id]
 		else:
-			return blue_table[unit_id]
+			return blue_table[id]
 	else:
 		return -1
 		
@@ -399,7 +390,7 @@ func remove_object(id: int, color: bool) -> void:
 
 
 func move_unit(unit_id: int, new_position: Vector2, color: bool):
-	var unit_data = get_unit_by_id(unit_id, color)
+	var unit_data = get_by_id(unit_id, color)
 	if unit_data != null:
 		var current_position = unit_data["position"]
 		unit_data["instance"].change_position(current_position, new_position)
@@ -407,22 +398,25 @@ func move_unit(unit_id: int, new_position: Vector2, color: bool):
 		print("unit ", unit_id, " of color ", color, " changed position")
 		
 		
-func remove_unit(unit_id: int, color: bool):
+func remove_unit(id: int, color: bool):
 	if color == false:
-		if red_table.has(unit_id):
-			var unit_data = red_table[unit_id]
+		if red_table.has(id):
+			var unit_data = red_table[id]
 			if unit_data.has("instance") and unit_data["instance"].is_valid():
 				unit_data["instance"].queue_free()
-			red_table.erase(unit_id)
-			print("Unit with ID ", unit_id, " of color red removed")
+			red_table.erase(id)
+			print("Object with ID ", id, " of color red removed")
 	else:
-		if blue_table.has(unit_id):
-			var unit_data = blue_table[unit_id]
+		if blue_table.has(id):
+			var unit_data = blue_table[id]
 			if unit_data.has("instance") and unit_data["instance"].is_valid():
 				unit_data["instance"].queue_free()
-			blue_table.erase(unit_id)
-			print("Unit with ID ", unit_id, "of color blue removed")
-	
+			blue_table.erase(id)
+			print("Object with ID ", id, "of color blue removed")
+
+func change_health(id: int, color: bool, value: int) -> void:
+	var unit_data = get_by_id(id, color)
+	unit_data["instance"].change_health(value)
 	
 func check_and_add_unit_1_on_pressed(event):
 	button_pressed = true
@@ -480,7 +474,7 @@ func check_and_add_main_base_on_pressed(event):
 			var coords = $Map.get_global_mouse_position()
 			var coords_window = event.global_position
 			if coords_window.x < offset:
-				#add_main_base(coords, player_color)
+				add_main_base(coords, player_color)
 				Client.build(Utils.EntityType.MAIN_BASE, coords)
 			base_exists = true
 		else:
@@ -496,7 +490,7 @@ func check_and_add_building_2_on_pressed(event, unit_type):
 			var coords = $Map.get_global_mouse_position()
 			var coords_window = event.global_position
 			if coords_window.x < offset:
-				#add_building_2(coords, id_num, player_color, unit_type)
+				add_building_2(coords, id_num, player_color, unit_type)
 				if unit_type == 1:
 					Client.build(Utils.EntityType.MINE_YES, coords);
 					unit_1_base_exists = true
@@ -521,7 +515,6 @@ func display_buttons():
 		unit_3_button.disabled = true
 		unit_4_button.disabled = true
 		main_base_button.disabled = false
-		#building_1_button.disabled = true
 		unit_1_building_button.disabled = true
 		unit_2_building_button.disabled = true
 		unit_3_building_button.disabled = true
@@ -532,7 +525,6 @@ func display_buttons():
 		unit_3_button.disabled = false
 		unit_4_button.disabled = false
 		main_base_button.disabled = true
-		#building_1_button.disabled = false
 		unit_1_building_button.disabled = false
 		unit_2_building_button.disabled = false
 		unit_3_building_button.disabled = false

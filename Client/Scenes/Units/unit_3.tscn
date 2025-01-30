@@ -19,6 +19,7 @@ input_pickable = true
 script = ExtResource("1_46q57")
 
 [node name="highlight" type="Sprite2D" parent="."]
+visible = false
 position = Vector2(-3.45707e-06, -3)
 scale = Vector2(0.45, 0.45)
 texture = ExtResource("1_obgw2")

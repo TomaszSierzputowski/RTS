@@ -58,18 +58,6 @@ func set_selected(value: bool) -> void:
 		selected = value
 		highlight.visible = value
 		
-	
-func _on_input_event(viewport: Node, event: InputEvent, shape_idx: int) -> void:
-	if event is InputEventMouseButton:
-		if event.button_index == MOUSE_BUTTON_LEFT and event.pressed and selected == false:
-			set_selected(true)
-		elif event.button_index == MOUSE_BUTTON_LEFT and event.pressed and selected == true:
-			set_selected(false)
-		elif event.button_index == MOUSE_BUTTON_RIGHT and event.pressed:
-			#change_health(-5)
-			new_position = Vector2(position.x - 5, position.y - 5)
-			change_position(current_position, new_position)
-			#health -= 5
 			
 func change_health(value: float) -> void:
 	health += value
@@ -81,7 +69,4 @@ func change_health(value: float) -> void:
 	unit_type.self_modulate.a = clamp(alpha, 0.0, 1.0)
 	
 func change_position(current_position: Vector2, new_position: Vector2) -> void:
-	#send signal to server
-	#wait for reply
-	#if reply true: change position
 	position = new_position
