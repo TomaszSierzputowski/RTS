@@ -29,6 +29,7 @@ func init_base(_id: int, _color: bool, _position: Vector2) -> void:
 	building_type.visible = true
 	building_type_outline.visible = true
 
+
 func _ready() -> void:
 	pass
 

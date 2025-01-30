@@ -8,6 +8,7 @@ var unit_4 = preload("res://Client/Scenes/Units/unit_4.tscn")
 var main_base = preload("res://Client/Scenes/Buildings/main_base.tscn")
 var building_1 = preload("res://Client/Scenes/Buildings/building_1.tscn")
 var building_2 = preload("res://Client/Scenes/Buildings/building_2.tscn")
+
 var id_num = 0
 var unit_1_price = 10
 var unit_2_price = 10
@@ -53,51 +54,21 @@ func _unhandled_input(event):
 	if event is InputEventMouseButton:
 		if event.button_index == MOUSE_BUTTON_LEFT:
 			if event.pressed:
-				# Rozpocznij zaznaczanie tylko, jeśli nie ma aktywnego wyboru
 				if selected.size() == 0:
 					dragging = true
 					drag_start = $Map.get_global_mouse_position()
-				# Jeśli kliknięto po zaznaczeniu, zresetuj zaznaczenie
 				else:
 					deselect_all()
 			elif dragging:
-				# Zakończ zaznaczanie
-				#queue_redraw()
 				dragging = false
-				#queue_redraw()
 				var drag_end = $Map.get_global_mouse_position()
 				select_units_in_area(drag_start, drag_end)
 
-	"""if event is InputEventMouseMotion and dragging:
-		queue_redraw()"""
-
-
-"""func _draw():
-	if dragging:
-		var drag_end = $Map.get_global_mouse_position()
-		var top_left = Vector2(
-			min(drag_start.x, drag_end.x),
-			min(drag_start.y, drag_end.y)
-		)
-		var size = Vector2(
-			abs(drag_end.x - drag_start.x),
-			abs(drag_end.y - drag_start.y)
-		)"""
-
-		# Rysowanie prostokąta z wypełnieniem i obramowaniem
-		#draw_rect(Rect2(top_left, size), Color(1, 1, 0, 0.3), true)  # Wypełnienie (żółty, przezroczystość 30%)
-		#draw_rect(Rect2(top_left, size), Color.YELLOW, false, 2)  # Obramowanie (żółty, grubość 2px)
-
 
 func select_units_in_area(start: Vector2, end: Vector2) -> void:
-	"""
-	Zaznacz jednostki w obszarze między `start` a `end`.
-	"""
-	# Ustaw wymiary prostokąta
 	select_rect.extents = abs(end - start) / 2
 	var rect_center = (start + end) / 2
 
-	# Konfiguracja zapytania fizycznego
 	var space = get_world_2d().direct_space_state
 	var query = PhysicsShapeQueryParameters2D.new()
 	query.shape = select_rect
@@ -115,21 +86,16 @@ func select_units_in_area(start: Vector2, end: Vector2) -> void:
 		if selected_id != -1:
 			selected_ids.append(selected_id)
 
-	#print("Selected units:", selected)
 	print("Selected ids: ", selected_ids)
 
+
 func deselect_all() -> void:
-	"""
-	Resetuj zaznaczenie wszystkich jednostek.
-	"""
 	for item in selected:
 		item.collider.set_selected(false)
 	selected.clear()
 	selected_ids.clear()
 
 
-
-# Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(delta: float) -> void:
 	display_buttons()
 		
@@ -137,12 +103,7 @@ func _process(delta: float) -> void:
 	var window_size = DisplayServer.window_get_size()
 	offset = window_size.x - menu_panel.custom_minimum_size.x
 	
-	if dragging:
-		queue_redraw()
-	
 
-
-# Called when an input event is detected
 func _input(event: InputEvent) -> void:
 	if event is InputEventMouseButton:
 		if button_pressed == false and unit_1_button.disabled == false and unit_1_button.button_pressed:
@@ -180,13 +141,15 @@ func _ready():
 	blue_table.resize(256)
 	Client.summon_build.connect(summon_build)
 	Client.set_resources.connect(set_resource_amount)
-	pass
+
 
 func set_resource_amount(val : int) -> void:
 	resource_amount = val
 
+
 func get_resource_amount() -> int:
 	return resource_amount
+
 
 func summon_build(player : int, id : int, type : Utils.EntityType, position : Vector2, health : int) -> void:
 	match type:
@@ -200,6 +163,7 @@ func summon_build(player : int, id : int, type : Utils.EntityType, position : Ve
 			add_building_2(position, id, player == 0, 4)
 		Utils.EntityType.PENTAGON_YES:
 			add_building_2(position, id, player == 0, 2)
+
 
 func add_unit1(position: Vector2, id: int, color: bool) -> void:
 	var new_unit = unit_1.instantiate()
@@ -225,6 +189,7 @@ func add_unit1(position: Vector2, id: int, color: bool) -> void:
 		}
 		print("saved to array")
 	
+	
 func add_unit2(position: Vector2, id: int, color: bool) -> void:
 	var new_unit = unit_2.instantiate()
 	new_unit.position = position
@@ -248,6 +213,7 @@ func add_unit2(position: Vector2, id: int, color: bool) -> void:
 			"instance": new_unit
 		}
 		print("saved to array")
+		
 		
 func add_unit3(position: Vector2, id: int, color: bool) -> void:
 	var new_unit = unit_3.instantiate()
@@ -346,8 +312,10 @@ func add_building_2(position: Vector2, id: int, color: bool, unit_type: int) -> 
 		}
 		print("saved to array")
 	
+	
 func get_last_id():
 	return id_num
+	
 	
 func get_by_id(id: int, color: bool):
 	if id <= 255 or id >= 0:
@@ -357,12 +325,14 @@ func get_by_id(id: int, color: bool):
 			return blue_table[id]
 	else:
 		return -1
+	
 		
 func get_id_from_instance(instance: CharacterBody2D) -> int:
 	for id in range(256):
 		if blue_table[id].instance == instance:
 			return id
 	return -1
+	
 	
 func remove_object(id: int, color: bool) -> void:
 	if color == false:
@@ -373,9 +343,9 @@ func remove_object(id: int, color: bool) -> void:
 				unit_instance.queue_free()
 			
 			red_table.remove_at(id)
-			print("Unit with ID", id, " of color red removed successfully.")
+			print("Object with ID", id, " of color red removed successfully.")
 		else:
-			print("Unit with ID", id, " of color red not found.")
+			print("Object with ID", id, " of color red not found.")
 	else:
 		if blue_table.has(id):
 			var unit_instance = blue_table[id]["instance"]
@@ -384,9 +354,9 @@ func remove_object(id: int, color: bool) -> void:
 				unit_instance.queue_free()
 			
 			blue_table.remove_at(id)
-			print("Unit with ID", id, " of color blue removed successfully.")
+			print("Object with ID", id, " of color blue removed successfully.")
 		else:
-			print("Unit with ID", id, " of color blue not found.")
+			print("Object with ID", id, " of color blue not found.")
 
 
 func move_unit(unit_id: int, new_position: Vector2, color: bool):
@@ -397,26 +367,11 @@ func move_unit(unit_id: int, new_position: Vector2, color: bool):
 		unit_data["position"] = new_position
 		print("unit ", unit_id, " of color ", color, " changed position")
 		
-		
-func remove_unit(id: int, color: bool):
-	if color == false:
-		if red_table.has(id):
-			var unit_data = red_table[id]
-			if unit_data.has("instance") and unit_data["instance"].is_valid():
-				unit_data["instance"].queue_free()
-			red_table.erase(id)
-			print("Object with ID ", id, " of color red removed")
-	else:
-		if blue_table.has(id):
-			var unit_data = blue_table[id]
-			if unit_data.has("instance") and unit_data["instance"].is_valid():
-				unit_data["instance"].queue_free()
-			blue_table.erase(id)
-			print("Object with ID ", id, "of color blue removed")
 
 func change_health(id: int, color: bool, value: int) -> void:
 	var unit_data = get_by_id(id, color)
 	unit_data["instance"].change_health(value)
+	
 	
 func check_and_add_unit_1_on_pressed(event):
 	button_pressed = true
@@ -431,6 +386,7 @@ func check_and_add_unit_1_on_pressed(event):
 			print("you do not have enough resource")
 	button_pressed = false
 
+
 func check_and_add_unit_2_on_pressed(event):
 	button_pressed = true
 	if event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
@@ -442,6 +398,7 @@ func check_and_add_unit_2_on_pressed(event):
 		else:
 			print("you do not have enough resource")
 	button_pressed = false
+	
 	
 func check_and_add_unit_3_on_pressed(event):
 	button_pressed = true
@@ -455,6 +412,7 @@ func check_and_add_unit_3_on_pressed(event):
 			print("you do not have enough resource")
 	button_pressed = false
 	
+	
 func check_and_add_unit_4_on_pressed(event):
 	button_pressed = true
 	if event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
@@ -467,6 +425,7 @@ func check_and_add_unit_4_on_pressed(event):
 			print("you do not have enough resource")
 	button_pressed = false
 	
+	
 func check_and_add_main_base_on_pressed(event):
 	button_pressed = true
 	if event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
@@ -474,7 +433,7 @@ func check_and_add_main_base_on_pressed(event):
 			var coords = $Map.get_global_mouse_position()
 			var coords_window = event.global_position
 			if coords_window.x < offset:
-				add_main_base(coords, player_color)
+				#add_main_base(coords, player_color)
 				Client.build(Utils.EntityType.MAIN_BASE, coords)
 			base_exists = true
 		else:
@@ -490,7 +449,7 @@ func check_and_add_building_2_on_pressed(event, unit_type):
 			var coords = $Map.get_global_mouse_position()
 			var coords_window = event.global_position
 			if coords_window.x < offset:
-				add_building_2(coords, id_num, player_color, unit_type)
+				#add_building_2(coords, id_num, player_color, unit_type)
 				if unit_type == 1:
 					Client.build(Utils.EntityType.MINE_YES, coords);
 					unit_1_base_exists = true

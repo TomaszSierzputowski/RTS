@@ -29,6 +29,7 @@ func init_building(_id: int, _color: bool, _position: Vector2) -> void:
 	building_type.visible = true
 	building_type_outline.visible = true
 
+
 func _ready() -> void:
 	pass
 
@@ -42,6 +43,7 @@ func set_selected(value: bool) -> void:
 	if selected != value:
 		selected = value
 		highlight.visible = value
+		
 			
 func change_health(value: float) -> void:
 	health += value

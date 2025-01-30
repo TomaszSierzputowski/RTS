@@ -13,6 +13,7 @@ var max_health: int = 100
 var current_position : Vector2
 var new_position : Vector2
 
+
 func init_unit(_id: int, _color: bool, _position: Vector2) -> void:
 	unit_id = _id
 	player_color = _color
@@ -27,6 +28,7 @@ func init_unit(_id: int, _color: bool, _position: Vector2) -> void:
 		print("Blue unit of type 1 with id: ", unit_id, " added")
 	unit_type.visible = true
 	unit_type_outline.visible = true
+
 
 func _ready() -> void:
 	unit_id = get_id(player_color)
@@ -45,6 +47,7 @@ func _process(delta: float) -> void:
 	highlight.visible = selected
 	current_position = position
 
+
 func get_id(player_color) -> int:
 	if player_color == false:
 		return 1
@@ -52,6 +55,7 @@ func get_id(player_color) -> int:
 		return 2
 	else:
 		return 3
+	
 	
 func set_selected(value: bool) -> void:
 	if selected != value:
@@ -67,6 +71,7 @@ func change_health(value: float) -> void:
 		print("you are dead hehehe")
 	var alpha = health / float(max_health)
 	unit_type.self_modulate.a = clamp(alpha, 0.0, 1.0)
+	
 	
 func change_position(current_position: Vector2, new_position: Vector2) -> void:
 	position = new_position

@@ -18,6 +18,7 @@ func _unhandled_input(event):
 		current_mouse_pos = get_global_mouse_position()
 		queue_redraw()
 
+
 func _draw():
 	if dragging:
 		var top_left = Vector2(min(drag_start.x, current_mouse_pos.x), min(drag_start.y, current_mouse_pos.y))

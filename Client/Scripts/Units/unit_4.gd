@@ -29,6 +29,7 @@ func init_unit(_id: int, _color: bool, _position: Vector2) -> void:
 	unit_type.visible = true
 	unit_type_outline.visible = true
 
+
 func _ready() -> void:
 	pass
 
@@ -53,6 +54,7 @@ func change_health(value: float) -> void:
 	var alpha = health / float(max_health)
 	unit_type.self_modulate.a = clamp(alpha, 0.0, 1.0)
 	
+	
 func change_position(current_position: Vector2, new_position: Vector2) -> void:
 	var delta_x = new_position.x - current_position.x
 	var delta_y = new_position.y - current_position.y
@@ -60,6 +62,7 @@ func change_position(current_position: Vector2, new_position: Vector2) -> void:
 	
 	position = new_position
 	rotation = rotate_amount
+	
 	
 func get_current_position() -> Vector2:
 	return global_position

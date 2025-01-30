@@ -29,6 +29,7 @@ func init_unit(_id: int, _color: bool, _position: Vector2) -> void:
 	unit_type.visible = true
 	unit_type_outline.visible = true
 
+
 func _ready() -> void:
 	pass
 
@@ -43,6 +44,7 @@ func set_selected(value: bool) -> void:
 		selected = value
 		highlight.visible = value
 			
+			
 func change_health(value: float) -> void:
 	health += value
 	if(health > 0):
@@ -51,6 +53,7 @@ func change_health(value: float) -> void:
 		print("you are dead hehehe")
 	var alpha = health / float(max_health)
 	unit_type.self_modulate.a = clamp(alpha, 0.0, 1.0)
+	
 	
 func change_position(current_position: Vector2, new_position: Vector2) -> void:
 	var delta_x = new_position.x - current_position.x

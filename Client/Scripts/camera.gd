@@ -20,6 +20,7 @@ func _process(delta: float) -> void:
 	Zoom(delta)
 	KeysControl(delta)
 	
+	
 func Zoom(delta):
 	if Input.is_action_just_pressed("camera_zoom_in"):
 		zoomTarget *=1.1
@@ -30,6 +31,7 @@ func Zoom(delta):
 	zoomTarget.y = clamp(zoomTarget.y, maxZoom.y, minZoom.y)
 
 	zoom = zoom.slerp(zoomTarget, zoomSpeed * delta)
+	
 	
 func KeysControl(delta):
 	var moveAmount = Vector2.ZERO
