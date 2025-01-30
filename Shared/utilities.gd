@@ -70,6 +70,8 @@ enum MessageType {
 	UPGRADED_DAMAGE = 0x9e,
 	ERROR_CHANGE_OF_NONEXISTING_ENTITY = 0x9f,
 	
+	END_GAME = 0xed,
+	
 	# Debug messages
 	JUST_STRING = 0xf0,
 	TEST_BYTE_BY_BYTE = 0xf1

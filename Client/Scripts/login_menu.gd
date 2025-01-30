@@ -27,13 +27,13 @@ func update_label(new_text: String):
 	label_error.text = new_text
 
 func _on_sign_in_button_pressed() -> void:
-	print("login button pressed")
+	#print("login button pressed")
 	label_error.visible = false
 	register_vbox.visible = false
 	login_vbox.visible = true
 
 func _on_sign_up_button_pressed() -> void:
-	print("register button pressed")
+	#print("register button pressed")
 	label_error.visible = false
 	register_vbox.visible = true
 	login_vbox.visible = false
@@ -84,19 +84,19 @@ func _is_valid_text(text: String) -> bool:
 func check_username(username: String) -> bool:
 	username = username.strip_edges()
 	if username.length() < 1 or username.length() > 20:
-		print("Invalid username: length must be between 1 and 20 characters.")
+		#print("Invalid username: length must be between 1 and 20 characters.")
 		return false
 	if not _is_valid_text(username):
-		print("Invalid username: contains invalid characters.")
+		#print("Invalid username: contains invalid characters.")
 		return false
 	return true
 	
 func check_password(password: String) -> bool:
 	password = password.strip_edges()
 	if password.length() < 8 or password.length() > 20:
-		print("Invalid password: length must be between 3 and 20 characters.")
+		#print("Invalid password: length must be between 3 and 20 characters.")
 		return false
 	if not _is_valid_text(password):
-		print("Invalid password: contains invalid characters.")
+		#print("Invalid password: contains invalid characters.")
 		return false
 	return true

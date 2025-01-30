@@ -40,6 +40,7 @@ var blue_table = []
 @onready var unit_4_building_button = $CanvasLayer/menuPanel/menuVBoxContainer/unit4buildingButton
 @onready var menu_panel = $CanvasLayer/menuPanel
 @onready var selection_layer = $selectionLayer
+@onready var tree = get_tree()
 
 var dragging = false
 var selected = []
@@ -85,7 +86,7 @@ func select_units_in_area(start: Vector2, end: Vector2) -> void:
 		if selected_id != -1:
 			selected_ids.append(selected_id)
 
-	print("Selected ids: ", selected_ids)
+	#print("Selected ids: ", selected_ids)
 
 
 func deselect_all() -> void:
@@ -125,7 +126,7 @@ func _input(event: InputEvent) -> void:
 			check_and_add_building_2_on_pressed(event, 4)
 		elif event.button_index == MOUSE_BUTTON_RIGHT and selected_ids != []:
 			target = $Map.get_global_mouse_position()
-			print(target)
+			#print(target)
 			#selected_and_target = selected_ids
 			#selected_and_target.append(target)
 			# tu pewnie cos trzeba wkleic i pewnie zmienic tę tablicę, tomek to zadanie dla ciebie
@@ -185,7 +186,7 @@ func add_unit1(position: Vector2, id: int, color: bool) -> void:
 	new_unit.init_unit(id, color, position)
 	add_child(new_unit)
 	resource_amount -= unit_1_price
-	print("added unit succesfully")
+	#print("added unit succesfully")
 	id_num += 1
 	
 	if color == false:
@@ -194,14 +195,14 @@ func add_unit1(position: Vector2, id: int, color: bool) -> void:
 			"position": position,
 			"instance": new_unit
 		}
-		print("saved to array")
+		#print("saved to array")
 	else:
 		blue_table[id] = {
 			"type": 1,
 			"position": position,
 			"instance": new_unit
 		}
-		print("saved to array")
+		#print("saved to array")
 	
 	
 func add_unit2(position: Vector2, id: int, color: bool) -> void:
@@ -210,7 +211,7 @@ func add_unit2(position: Vector2, id: int, color: bool) -> void:
 	new_unit.init_unit(id, color, position)
 	add_child(new_unit)
 	resource_amount -= unit_2_price
-	print("added unit succesfully")
+	#print("added unit succesfully")
 	id_num += 1
 	
 	if color == false:
@@ -219,14 +220,14 @@ func add_unit2(position: Vector2, id: int, color: bool) -> void:
 			"position": position,
 			"instance": new_unit
 		}
-		print("saved to array")
+		#print("saved to array")
 	else:
 		blue_table[id] = {
 			"type": 2,
 			"position": position,
 			"instance": new_unit
 		}
-		print("saved to array")
+		#print("saved to array")
 		
 		
 func add_unit3(position: Vector2, id: int, color: bool) -> void:
@@ -235,7 +236,7 @@ func add_unit3(position: Vector2, id: int, color: bool) -> void:
 	new_unit.init_unit(id, color, position)
 	add_child(new_unit)
 	resource_amount -= unit_3_price
-	print("added unit succesfully")
+	#print("added unit succesfully")
 	id_num += 1
 	
 	if color == false:
@@ -244,14 +245,14 @@ func add_unit3(position: Vector2, id: int, color: bool) -> void:
 			"position": position,
 			"instance": new_unit
 		}
-		print("saved to array")
+		#print("saved to array")
 	else:
 		blue_table[id] = {
 			"type": 3,
 			"position": position,
 			"instance": new_unit
 		}
-		print("saved to array")
+		#print("saved to array")
 		
 		
 func add_unit4(position: Vector2, id: int, color: bool) -> void:
@@ -260,7 +261,7 @@ func add_unit4(position: Vector2, id: int, color: bool) -> void:
 	new_unit.init_unit(id, color, position)
 	add_child(new_unit)
 	resource_amount -= unit_4_price
-	print("added unit succesfully")
+	#print("added unit succesfully")
 	id_num += 1
 	
 	if color == false:
@@ -269,14 +270,14 @@ func add_unit4(position: Vector2, id: int, color: bool) -> void:
 			"position": position,
 			"instance": new_unit
 		}
-		print("saved to array")
+		#print("saved to array")
 	else:
 		blue_table[id] = {
 			"type": 4,
 			"position": position,
 			"instance": new_unit
 		}
-		print("saved to array")
+		#print("saved to array")
 
 func add_main_base(position: Vector2, color: bool) -> void:
 	var new_building = main_base.instantiate()
@@ -284,7 +285,7 @@ func add_main_base(position: Vector2, color: bool) -> void:
 	new_building.init_base(0, color, position)
 	add_child(new_building)
 	resource_amount -= main_base_price
-	print("added unit succesfully")
+	#print("added unit succesfully")
 	id_num += 1
 	
 	if color == false:
@@ -293,14 +294,14 @@ func add_main_base(position: Vector2, color: bool) -> void:
 			"position": position,
 			"instance": new_building
 		}
-		print("saved to array")
+		#print("saved to array")
 	else:
 		blue_table[0] = {
 			"type": 0,
 			"position": position,
 			"instance": new_building
 		}
-		print("saved to array")
+		#print("saved to array")
 	
 		
 func add_building_2(position: Vector2, id: int, color: bool, unit_type: int) -> void:
@@ -308,7 +309,7 @@ func add_building_2(position: Vector2, id: int, color: bool, unit_type: int) -> 
 	new_building.position = position
 	new_building.init_building(id, color, position, unit_type)
 	add_child(new_building)
-	print("added building succesfully")
+	#print("added building succesfully")
 	id_num += 1
 	
 	if color == false:
@@ -317,14 +318,14 @@ func add_building_2(position: Vector2, id: int, color: bool, unit_type: int) -> 
 		"position": position,
 		"instance": new_building
 	}
-		print("saved to array")
+		#print("saved to array")
 	else:
 		blue_table[id] = {
 			"type": 2,
 			"position": position,
 			"instance": new_building
 		}
-		print("saved to array")
+		#print("saved to array")
 	
 	
 func get_last_id():
@@ -354,8 +355,8 @@ func die_destroy(player : int, id : int) -> void:
 			print("You have won")
 		else:
 			print("You have lost")
-		get_tree().change_scene_to_file.call_deferred("res://Client/Scenes/welcome_menu.tscn")
-	print("dead: ", id)
+		tree.change_scene_to_file("res://Client/Scenes/welcome_menu.tscn")
+	#print("dead: ", id)
 	remove_object(id, player == 0)
 
 func remove_object(id: int, color: bool) -> void:
@@ -367,9 +368,9 @@ func remove_object(id: int, color: bool) -> void:
 				unit_instance.queue_free()
 			
 			red_table[id] = null
-			print("Object with ID", id, " of color red removed successfully.")
-		else:
-			print("Object with ID", id, " of color red not found.")
+			#print("Object with ID", id, " of color red removed successfully.")
+		#else:
+			#print("Object with ID", id, " of color red not found.")
 	else:
 		if blue_table[id] != null:
 			var unit_instance = blue_table[id]["instance"]
@@ -378,9 +379,9 @@ func remove_object(id: int, color: bool) -> void:
 				unit_instance.queue_free()
 			
 			blue_table[id] = null
-			print("Object with ID", id, " of color blue removed successfully.")
-		else:
-			print("Object with ID", id, " of color blue not found.")
+			#print("Object with ID", id, " of color blue removed successfully.")
+		#else:
+			#print("Object with ID", id, " of color blue not found.")
 
 func change_position(player : int, id : int, new_position : Vector2) -> void:
 	move_unit(id, new_position, player == 0)
@@ -391,7 +392,7 @@ func move_unit(unit_id: int, new_position: Vector2, color: bool):
 		var current_position = unit_data["position"]
 		unit_data["instance"].change_position(current_position, new_position)
 		unit_data["position"] = new_position
-		print("unit ", unit_id, " of color ", color, " changed position to", new_position)
+		#print("unit ", unit_id, " of color ", color, " changed position to", new_position)
 		
 
 func change_hp(player : int, id : int, hp : int) -> void:
@@ -410,12 +411,12 @@ func check_and_add_unit_1_on_pressed(event):
 		if get_resource_amount() >= unit_1_price:
 			var coords = $Map.get_global_mouse_position()
 			var coords_window = event.global_position
-			print(coords, coords_window, offset)
+			#print(coords, coords_window, offset)
 			if coords_window.x < offset:
 				#add_unit1(coords, id_num, player_color)
 				Client.summon(Utils.EntityType.WORKER, coords)
-		else:
-			print("you do not have enough resource")
+		#else:
+			#print("you do not have enough resource")
 	button_pressed = false
 
 
@@ -428,8 +429,8 @@ func check_and_add_unit_2_on_pressed(event):
 			if coords_window.x < offset:
 				#add_unit2(coords, id_num, player_color)
 				Client.summon(Utils.EntityType.PENTAGON, coords)
-		else:
-			print("you do not have enough resource")
+		#else:
+			#print("you do not have enough resource")
 	button_pressed = false
 	
 	
@@ -442,8 +443,8 @@ func check_and_add_unit_3_on_pressed(event):
 			if coords_window.x < offset:
 				#add_unit3(coords, id_num, player_color)
 				Client.summon(Utils.EntityType.TRIANGLE, coords)
-		else:
-			print("you do not have enough resource")
+		#else:
+			#print("you do not have enough resource")
 	button_pressed = false
 	
 	
@@ -456,8 +457,8 @@ func check_and_add_unit_4_on_pressed(event):
 			if coords_window.x < offset:
 				#add_unit4(coords, id_num, player_color)
 				Client.summon(Utils.EntityType.SQUARE, coords)
-		else:
-			print("you do not have enough resource")
+		#else:
+			#print("you do not have enough resource")
 	button_pressed = false
 	
 	
@@ -471,8 +472,8 @@ func check_and_add_main_base_on_pressed(event):
 				#add_main_base(coords, player_color)
 				Client.build(Utils.EntityType.MAIN_BASE, coords)
 			base_exists = true
-		else:
-			print("you do not have enough resource")
+		#else:
+			#print("you do not have enough resource")
 	button_pressed = false
 	main_base_button.toggle_mode = false
 	
@@ -497,8 +498,8 @@ func check_and_add_building_2_on_pressed(event, unit_type):
 				elif unit_type == 4:
 					Client.build(Utils.EntityType.SQUARE_YES, coords);
 					unit_4_base_exists = true
-		else:
-			print("you do not have enough resource")
+		#else:
+			#print("you do not have enough resource")
 	button_pressed = false
 	
 	
@@ -524,10 +525,10 @@ func display_buttons():
 		unit_3_building_button.disabled = false
 		unit_4_building_button.disabled = false
 		
-	if unit_1_base_exists == false:
-		unit_1_button.disabled = true
-	else:
-		unit_1_button.disabled = false
+	#if unit_1_base_exists == false:
+		#unit_1_button.disabled = true
+	#else:
+		#unit_1_button.disabled = false
 		
 	if unit_2_base_exists == false:
 		unit_2_button.disabled = true

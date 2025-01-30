@@ -100,8 +100,8 @@ func readUDP() -> Error:
 	
 	var i : int = 34
 	var packet_size : int = packet.size()
-	if i < packet_size:
-		print("Interesting packet")
+	#if i < packet_size:
+		#print("Interesting packet")
 	while i < packet_size:
 		match packet[i]: # use changes.gd
 			Utils.MessageType.SUMMONED_BUILT:
@@ -195,7 +195,7 @@ func readUDP() -> Error:
 					return ERR_INVALID_DATA
 				i += 1
 				while i <= last:
-					print("hp change, id: ", packet[i])
+					#print("hp change, id: ", packet[i])
 					change_health.emit(0, packet[i], packet[i+1])
 					i += 2
 			Utils.MessageType.HP_CHANGE_OPP:
@@ -209,7 +209,7 @@ func readUDP() -> Error:
 					return ERR_INVALID_DATA
 				i += 1
 				while i <= last:
-					print("hp change opp, id: ", packet[i])
+					#print("hp change opp, id: ", packet[i])
 					change_health.emit(1, packet[i], packet[i+1])
 					i += 2
 			Utils.MessageType.POS_HP_CHANGE:
@@ -257,12 +257,12 @@ func writeUDP() -> void:
 	var i := 0
 	while i < no_repackets:
 		if packets_to_resend[i][32] in server_received:
-			print("Packet end: ", packets_to_resend[i][32])
+			#print("Packet end: ", packets_to_resend[i][32])
 			no_repackets -= 1
 			packets_to_resend[i] = packets_to_resend[no_repackets]
 		else:
 			udp.put_packet(packets_to_resend[i])
-			print("Sent packet of id: ", packets_to_resend[i][32])
+			#print("Sent packet of id: ", packets_to_resend[i][32])
 			i += 1
 	if is_new_packet:
 		udp.put_packet(new_packet)
@@ -425,7 +425,7 @@ func play() -> Utils.MessageType:
 		return Utils.MessageType.GAME_CANCELED
 	
 	in_game = true
-	print("Game started")
+	#print("Game started")
 	return Utils.MessageType.RESPONSE_OK
 
 func cancel_play() -> void:
@@ -454,7 +454,7 @@ func connect_to_server(_tls_host : String, _tls_port : int, _udp_host : String, 
 	if tls != null and (tls.get_status() == StreamPeerTLS.STATUS_HANDSHAKING or tls.get_status() == StreamPeerTLS.STATUS_CONNECTED):
 		print("Client already connected to server")
 		return ERR_ALREADY_EXISTS
-	print("trying to connect")
+	#print("trying to connect")
 	if tcp != null:
 		if tcp.get_status() == StreamPeerTCP.STATUS_CONNECTED:
 			tcp.disconnect_from_host()
@@ -475,7 +475,7 @@ func connect_to_server(_tls_host : String, _tls_port : int, _udp_host : String, 
 		print("TCP Connection error status: ", tcp.get_status())
 		return ERR_CONNECTION_ERROR
 	
-	print("TCP connected")
+	#print("TCP connected")
 	tcp.put_u8(Utils.MessageType.RESPONSE_OK)
 	
 	var response := tcp.get_u8() as Utils.MessageType
@@ -502,7 +502,7 @@ func connect_to_server(_tls_host : String, _tls_port : int, _udp_host : String, 
 	
 	connected = true
 	
-	print("TLS connected")
+	#print("TLS connected")
 	
 	udp = PacketPeerUDP.new()
 	var err = udp.connect_to_host(udp_host, udp_port)
@@ -523,7 +523,7 @@ func connect_to_server(_tls_host : String, _tls_port : int, _udp_host : String, 
 	if response == Utils.MessageType.ERROR_CANNOT_AUTHORISE_UDP:
 		return ERR_UNAUTHORIZED
 	
-	print("UDP connected")
+	#print("UDP connected")
 	
 	return OK
 

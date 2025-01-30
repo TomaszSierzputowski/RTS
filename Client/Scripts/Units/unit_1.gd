@@ -21,18 +21,18 @@ func init_unit(_id: int, _color: bool, _position: Vector2) -> void:
 	if player_color == false:
 		unit_type = $unit_1_red
 		unit_type_outline = $red_outline
-		print("Red unit of type 1 with id: ", unit_id, " added")
+		#print("Red unit of type 1 with id: ", unit_id, " added")
 	else:
 		unit_type = $unit_1_blue
 		unit_type_outline = $blue_outline
-		print("Blue unit of type 1 with id: ", unit_id, " added")
+		#print("Blue unit of type 1 with id: ", unit_id, " added")
 	unit_type.visible = true
 	unit_type_outline.visible = true
 
 
 func _ready() -> void:
 	unit_id = get_id(player_color)
-	print("id: ", unit_id)
+	#print("id: ", unit_id)
 	if player_color == false:
 		unit_type = $unit_1_red
 		unit_type_outline = $red_outline
@@ -65,10 +65,10 @@ func set_selected(value: bool) -> void:
 			
 func change_health(value: float) -> void:
 	health = value
-	if(health > 0):
-		print("health is ", health)
-	else:
-		print("you are dead hehehe")
+	#if(health > 0):
+		#print("health is ", health)
+	#else:
+		#print("you are dead hehehe")
 	var alpha = health / float(max_health)
 	unit_type.self_modulate.a = clamp(alpha, 0.0, 1.0)
 	

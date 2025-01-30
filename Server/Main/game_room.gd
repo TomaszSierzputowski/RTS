@@ -33,9 +33,9 @@ func _init(player1 : Account, player2 : Account) -> void:
 	session.game_hp_changed[1].connect(changes[1].hp_changed)
 
 func _ready() -> void:
-	print("Game started")
-	print("PLayer 1: ", players[0].id)
-	print("Player 2: ", players[1].id)
+	#print("Game started")
+	#print("PLayer 1: ", players[0].id)
+	#print("Player 2: ", players[1].id)
 	add_child(session)
 
 func _process(_delta : float) -> void:
@@ -66,7 +66,7 @@ func readUDP(player : int) -> Utils.MessageType:
 		return Utils.MessageType.ERROR_INVALID_HMAC_ERROR
 	received_ids[player].encode_u8(id_idx[player], id)
 	id_idx[player] = (id_idx[player] + 1) % max_last_ids
-	print("Packet ", id, ":")
+	#print("Packet ", id, ":")
 	var packet_size = packet.size()
 	var msgType := packet.decode_u8(0) as Utils.MessageType
 	match msgType:
@@ -110,9 +110,12 @@ func readUDP(player : int) -> Utils.MessageType:
 	
 	return Utils.MessageType.RESPONSE_OK
 
+
 var changes : Array[Changes]
 func send_board_changes(player : int) -> void:
 	var packet := changes[player].extract_changes()
+	if packet[0] == Utils.MessageType.END_GAME and packet.size() == 34:
+		queue_free()
 	for i in range(32):
 		packet[i] = received_ids[player][i]
 	packet.encode_u16(32, session.get_resource(player))

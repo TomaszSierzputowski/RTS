@@ -48,7 +48,7 @@ func _ready():
 	
 	# Ładowanie mapy gry
 	load_map()
-	print("Game session initialized")
+	#print("Game session initialized")
 	
 
 # Funkcja ładująca mapę gry z pliku sceny
@@ -57,7 +57,7 @@ func load_map():
 	if map_scene:
 		game_map = map_scene.instantiate()
 		add_child(game_map)
-		print("Game map loaded")
+		#print("Game map loaded")
 	else:
 		print("Failed to load game map")
 		
@@ -90,7 +90,7 @@ func summon(player_num : int, character_type : Utils.EntityType, position : Vect
 # Funkcja dodająca jednostkę do mapy
 #func add_unit_to_map(unit: Node, player_num: int, position: Vector2):
 	if unit and can_place(player_num,character_type,position): #and is_valid(position):
-		print("summoned: ", character_type)
+		#print("summoned: ", character_type)
 		var player = players[player_num]
 		unit.position = position
 		var id = player.add_unit(unit)
@@ -107,7 +107,7 @@ func summon(player_num : int, character_type : Utils.EntityType, position : Vect
 			game_summoned_built[0].emit(player_num, id, character_type, position)
 			# poinformowanie gracza 1
 			game_summoned_built[1].emit(player_num, id, character_type, position)
-			print("Send info about summoning")
+			#print("Send info about summoning")
 
 func move(player_num : int, ids : PackedByteArray, position : Vector2) -> void:
 	var player : Player = players[player_num]

@@ -37,6 +37,8 @@ func _init(_main_player : int) -> void:
 func extract_changes() -> PackedByteArray:
 	var packet : PackedByteArray
 	packet.resize(34)
+	if quick_access_changes[0].code[0] == Utils.MessageType.DIED_DESTROYED or quick_access_changes[256].code[0] == Utils.MessageType.DIED_DESTROYED:
+		packet[0] = Utils.MessageType.END_GAME
 	var p := [Utils.MessageType.POS_CHANGE, 0] as PackedByteArray
 	var no_p := 0
 	var po := [Utils.MessageType.POS_CHANGE_OPP, 0] as PackedByteArray
@@ -119,6 +121,8 @@ func summoned_built(player : int, id : int, entity : Utils.EntityType, position 
 	change.significance = 7
 
 func died_destroyed(player : int, id : int):
+	if quick_access_changes[0].code[0] == Utils.MessageType.DIED_DESTROYED or quick_access_changes[256].code[0] == Utils.MessageType.DIED_DESTROYED:
+		return
 	var change : Change = quick_access_changes[256 * player + id]
 	change.code.resize(2)
 	if change.significance == 0:
@@ -131,6 +135,8 @@ func died_destroyed(player : int, id : int):
 	change.significance = 7
 
 func appeared(id : int, entity : Utils.EntityType, position : Vector2, hp : int):
+	if quick_access_changes[0].code[0] == Utils.MessageType.DIED_DESTROYED or quick_access_changes[256].code[0] == Utils.MessageType.DIED_DESTROYED:
+		return
 	var change : Change = quick_access_changes[256 + id]
 	change.code.resize(8)
 	if change.significance == 0:
@@ -144,6 +150,8 @@ func appeared(id : int, entity : Utils.EntityType, position : Vector2, hp : int)
 	change.significance = 7
 
 func disappeared(id : int):
+	if quick_access_changes[0].code[0] == Utils.MessageType.DIED_DESTROYED or quick_access_changes[256].code[0] == Utils.MessageType.DIED_DESTROYED:
+		return
 	var change : Change = quick_access_changes[256 + id]
 	change.code.resize(2)
 	if change.significance == 0:
@@ -153,6 +161,8 @@ func disappeared(id : int):
 	change.significance = 7
 
 func position_changed(player : int, id : int, new_position : Vector2) -> void:
+	if quick_access_changes[0].code[0] == Utils.MessageType.DIED_DESTROYED or quick_access_changes[256].code[0] == Utils.MessageType.DIED_DESTROYED:
+		return
 	var change : Change = quick_access_changes[256 * player + id]
 	if change.significance > 0:
 		match change.code.decode_u8(0):
@@ -195,6 +205,8 @@ func position_changed(player : int, id : int, new_position : Vector2) -> void:
 
 #func hp_changed(player : int, id : int, new_hp : int, change_amount : int) -> void:
 func hp_changed(player : int, id : int, new_hp : int) -> void:
+	if quick_access_changes[0].code[0] == Utils.MessageType.DIED_DESTROYED or quick_access_changes[256].code[0] == Utils.MessageType.DIED_DESTROYED:
+		return
 	var change : Change = quick_access_changes[256 * player + id]
 	var significance = 3
 	if change.significance > 0:
@@ -235,6 +247,8 @@ func hp_changed(player : int, id : int, new_hp : int) -> void:
 			change.code.encode_u8(0, Utils.MessageType.HP_CHANGE_OPP)
 
 func upgraded(upgrade_type : Utils.MessageType, entity_type : Utils.EntityType, level : int) -> void:
+	if quick_access_changes[0].code[0] == Utils.MessageType.DIED_DESTROYED or quick_access_changes[256].code[0] == Utils.MessageType.DIED_DESTROYED:
+		return
 	var idx : int = 512 + 3 * (entity_type - Utils.EntityType.CHARACTER_0) + upgrade_type - Utils.MessageType.UPGRADED_0
 	var change : Change = quick_access_changes[idx]
 	change.code.encode_u8(2, level)

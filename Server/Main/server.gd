@@ -62,11 +62,11 @@ func _process(_delta : float) -> void:
 					no_waiting -= 1
 					waiting_for_authorization[i] = waiting_for_authorization[no_waiting]
 					waiting_for_authorization[no_waiting] = null
-					print("UDP connected")
+					#print("UDP connected")
 				else:
-					print("UDP authorisation failed")
-					print("awaiting: ", session.hmac_authorisation)
-					print("received: ", packet)
+					#print("UDP authorisation failed")
+					#print("awaiting: ", session.hmac_authorisation)
+					#print("received: ", packet)
 					session.tls.put_u8(Utils.MessageType.ERROR_CANNOT_AUTHORISE_UDP)
 					peer.close()
 				break
@@ -74,7 +74,7 @@ func _process(_delta : float) -> void:
 
 func connect_new_session() -> Error:
 	var peer : StreamPeerTCP = tcp.take_connection()
-	print("someone is trying to connect")
+	#print("someone is trying to connect")
 	
 	while peer.get_status() == StreamPeerTCP.Status.STATUS_CONNECTING:
 		timer.start(0.001)
@@ -98,7 +98,7 @@ func connect_new_session() -> Error:
 	
 	peer.put_u8(Utils.MessageType.RESPONSE_OK)
 	
-	print("TCP connected")
+	#print("TCP connected")
 	
 	var tls : StreamPeerTLS = StreamPeerTLS.new()
 	var tls_err : Error
@@ -110,7 +110,7 @@ func connect_new_session() -> Error:
 		return tls_err
 	
 	while tls.get_status() == StreamPeerTLS.Status.STATUS_HANDSHAKING:
-		print("still handshaking")
+		#print("still handshaking")
 		timer.start(0.001)
 		await timer.timeout
 		tls.poll()
@@ -125,7 +125,7 @@ func connect_new_session() -> Error:
 	
 	session.udp_port = tls.get_u16()
 	
-	print("TLS connected")
+	#print("TLS connected")
 	
 	var packet : PackedByteArray
 	packet.append(Utils.MessageType.TOKEN_AND_KEY)
@@ -190,10 +190,10 @@ func readTLS(session : Account, bytes : int) -> Error:
 				return ERR_INVALID_DATA
 			var password = peer.get_string(pass_len)
 			if session.password != password:
-				print("Invalid password")
+				#print("Invalid password")
 				peer.put_u8(Utils.MessageType.ERROR_INVALID_HASHED_PASSWORD)
 				return ERR_INVALID_DATA
-			print("Successfully logged in")
+			#print("Successfully logged in")
 			peer.put_u8(Utils.MessageType.RESPONSE_OK)
 		
 		Utils.MessageType.PREPARE_GAME:

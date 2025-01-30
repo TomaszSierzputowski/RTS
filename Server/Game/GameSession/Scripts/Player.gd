@@ -40,15 +40,15 @@ func add_unit(unit: Node) -> int:
 					next_id += 1
 					_unlock_mine()
 					_unlock_worker_units()
+					_unlock_fast_unit_factory()
+					_unlock_standard_unit_factory()
+					_unlock_heavy_unit_factory()
 			"Mine":
 				if resources >= MineCost and classname in unlocked_units:
 					resources -= MineCost
 					#units.append(unit)
 					units[next_id] = unit
 					next_id += 1
-					_unlock_fast_unit_factory()
-					_unlock_standard_unit_factory()
-					_unlock_heavy_unit_factory()
 							
 			"HeavyUnitFactory":
 				if resources >= HeavyUnitFacotryCost and classname in unlocked_units :
@@ -107,40 +107,40 @@ func add_resource(value: int):
 func _unlock_mine():
 	if "Mine" not in unlocked_units:
 		unlocked_units.append("Mine")
-		print("Mines unlocked!")
+		#print("Mines unlocked!")
 
 
 func _unlock_worker_units():
 	if "WorkerUnit"  not in unlocked_units:
 		unlocked_units.append("WorkerUnit")
-		print("Worker units unlocked!")
+		#print("Worker units unlocked!")
 		
 func _unlock_fast_units():
 	if "FastUnit"  not in unlocked_units:
 		unlocked_units.append("FastUnit")
-		print("Fast unit unlocked!")
+		#print("Fast unit unlocked!")
 
 func _unlock_standard_units():
 	if "StandardUnit"  not in unlocked_units:
 		unlocked_units.append("StandardUnit")
-		print("Standard unit unlocked!")
+		#print("Standard unit unlocked!")
 
 func _unlock_heavy_units():
 	if "HeavyUnit"  not in unlocked_units:
 		unlocked_units.append("HeavyUnit")
-		print("Heavy unit unlocked!")
+		#print("Heavy unit unlocked!")
 
 func _unlock_fast_unit_factory():
 	if "FastUnitFactory" not in unlocked_units:
 		unlocked_units.append("FastUnitFactory")
-		print("Fast unit factory unlocked!")
+		#print("Fast unit factory unlocked!")
 
 func _unlock_standard_unit_factory():
 	if "StandardUnitFactory" not in unlocked_units:
 		unlocked_units.append("StandardUnitFactory")
-		print("Standard unit factory unlocked!")	
+		#print("Standard unit factory unlocked!")	
 		
 func _unlock_heavy_unit_factory():
 	if "HeavyUnitFactory" not in unlocked_units:
 		unlocked_units.append("HeavyUnitFactory")
-		print("Heavy unit factory unlocked!")
+		#print("Heavy unit factory unlocked!")

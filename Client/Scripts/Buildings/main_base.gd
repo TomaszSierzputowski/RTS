@@ -21,11 +21,11 @@ func init_base(_id: int, _color: bool, _position: Vector2) -> void:
 	if player_color == false:
 		building_type = $main_base_red
 		building_type_outline = $red_outline
-		print("Red main base with id: ", building_id, " added")
+		#print("Red main base with id: ", building_id, " added")
 	else:
 		building_type = $main_base_blue
 		building_type_outline = $blue_outline
-		print("Blue main base with id: ", building_id, " added")
+		#print("Blue main base with id: ", building_id, " added")
 	building_type.visible = true
 	building_type_outline.visible = true
 
@@ -47,10 +47,10 @@ func set_selected(value: bool) -> void:
 			
 func change_health(value: float) -> void:
 	health = value
-	if(health > 0):
-		print("health is ", health)
-	else:
-		print("you are dead hehehe")
+	#if(health > 0):
+		#print("health is ", health)
+	#else:
+		#print("you are dead hehehe")
 	var alpha = health / float(max_health)
 	building_type.self_modulate.a = clamp(alpha, 0.0, 1.0)
 
