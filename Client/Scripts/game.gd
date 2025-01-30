@@ -90,8 +90,6 @@ func select_units_in_area(start: Vector2, end: Vector2) -> void:
 			selected_ids.append(selected_id)
 
 	#print("Selected ids: ", selected_ids)
-	print(selected)
-	print(blue_table)
 
 
 func deselect_all() -> void:

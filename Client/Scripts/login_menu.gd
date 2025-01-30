@@ -43,7 +43,7 @@ func _on_login_go_button_pressed() -> void:
 	var password = login_password.text
 	
 	if check_password(password) and check_username(username):
-		var response =  Utils.MessageType.RESPONSE_OK# await Client.sign_in(username, password)
+		var response = await Client.sign_in(username, password)
 		
 		if response == Utils.MessageType.RESPONSE_OK:
 			UserData.username = username

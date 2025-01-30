@@ -209,6 +209,10 @@ func readTLS(session : Account, bytes : int) -> Error:
 				session.tls.put_u8(Utils.MessageType.GAME_STARTED)
 				waiting_for_second_player = null
 		
+		Utils.MessageType.GAME_CANCELED:
+			if session.id == waiting_for_second_player.id:
+				waiting_for_second_player = null
+		
 		Utils.MessageType.JUST_STRING:
 			var msg : String = peer.get_string()
 			print("tls: ", msg)
