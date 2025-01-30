@@ -11,11 +11,14 @@ var building_2 = preload("res://Client/Scenes/Buildings/building_2.tscn")
 
 var id_num = 0
 var unit_1_price = 10
-var unit_2_price = 10
-var unit_3_price = 10
-var unit_4_price = 10
-var main_base_price = 20
-var building_2_price = 10
+var unit_2_price = 30
+var unit_3_price = 15
+var unit_4_price = 30
+var main_base_price = 0
+var building_2_1_price = 50
+var building_2_2_price = 600
+var building_2_3_price = 100
+var building_2_4_price = 100
 var base_exists : bool = false
 var unit_1_base_exists : bool = false
 var unit_2_base_exists : bool = false
@@ -87,6 +90,8 @@ func select_units_in_area(start: Vector2, end: Vector2) -> void:
 			selected_ids.append(selected_id)
 
 	#print("Selected ids: ", selected_ids)
+	print(selected)
+	print(blue_table)
 
 
 func deselect_all() -> void:
@@ -374,6 +379,10 @@ func remove_object(id: int, color: bool) -> void:
 	else:
 		if blue_table[id] != null:
 			var unit_instance = blue_table[id]["instance"]
+			for item in selected:
+				if item["collider"] == unit_instance:
+					selected.erase(item)
+					break
 			
 			if is_instance_valid(unit_instance):
 				unit_instance.queue_free()
@@ -481,23 +490,22 @@ func check_and_add_main_base_on_pressed(event):
 func check_and_add_building_2_on_pressed(event, unit_type):
 	button_pressed = true
 	if event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
-		if get_resource_amount() >= building_2_price:
-			var coords = $Map.get_global_mouse_position()
-			var coords_window = event.global_position
-			if coords_window.x < offset:
-				#add_building_2(coords, id_num, player_color, unit_type)
-				if unit_type == 1:
-					Client.build(Utils.EntityType.MINE_YES, coords);
-					unit_1_base_exists = true
-				elif unit_type == 2:
-					Client.build(Utils.EntityType.PENTAGON_YES, coords);
-					unit_2_base_exists = true
-				elif unit_type == 3:
-					Client.build(Utils.EntityType.TRIANGLE_YES, coords);
-					unit_3_base_exists = true
-				elif unit_type == 4:
-					Client.build(Utils.EntityType.SQUARE_YES, coords);
-					unit_4_base_exists = true
+		var coords = $Map.get_global_mouse_position()
+		var coords_window = event.global_position
+		if coords_window.x < offset:
+			#add_building_2(coords, id_num, player_color, unit_type)
+			if unit_type == 1 and get_resource_amount() >= building_2_1_price:
+				Client.build(Utils.EntityType.MINE_YES, coords);
+				unit_1_base_exists = true
+			elif unit_type == 2 and get_resource_amount() >= building_2_2_price:
+				Client.build(Utils.EntityType.PENTAGON_YES, coords);
+				unit_2_base_exists = true
+			elif unit_type == 3 and get_resource_amount() >= building_2_3_price:
+				Client.build(Utils.EntityType.TRIANGLE_YES, coords);
+				unit_3_base_exists = true
+			elif unit_type == 4 and get_resource_amount() >= building_2_4_price:
+				Client.build(Utils.EntityType.SQUARE_YES, coords);
+				unit_4_base_exists = true
 		#else:
 			#print("you do not have enough resource")
 	button_pressed = false

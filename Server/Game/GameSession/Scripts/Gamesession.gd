@@ -112,7 +112,7 @@ func summon(player_num : int, character_type : Utils.EntityType, position : Vect
 func move(player_num : int, ids : PackedByteArray, position : Vector2) -> void:
 	var player : Player = players[player_num]
 	for i in ids:
-		if player.units[i].has_method("move_to_position"):
+		if player.units[i] != null and player.units[i].has_method("move_to_position"):
 			player.units[i].move_to_position(position)
 
 func moved(player : int, id : int, new_position : Vector2) -> void:

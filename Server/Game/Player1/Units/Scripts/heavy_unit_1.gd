@@ -9,6 +9,8 @@ var target_node: Node
 var targeted_nodes: Array[Node] = []
 var id = -1
 
+var attack_counter = 0
+
 signal moved(player : int, id : int, new_position : Vector2)
 signal damaged(player : int, id : int, hp : int)
 signal died(player : int, id : int)
@@ -26,13 +28,18 @@ func _ready() -> void:
 	pass
 
 func _physics_process(delta: float) -> void:
+	if attack_counter > 0:
+		attack_counter -= 1
 	if target_node != null:
 		if target_node is BaseBuilding2 and position.distance_to(target_node.position) <= 135:
 			deal_damage(target_node)
 		if target_node is StandardUnitFactory2 or target_node is FastUnitFactory2 or target_node is HeavyUnitFactory2 or target_node is MineBuilding2:
 			if abs(position.x-target_node.position.x) <= 135 and abs(position.y-target_node.position.y) <= 135:
 				deal_damage(target_node)
+	
 	if nav_agent.is_navigation_finished():
+		if target_node != null and target_node is CharacterBody2D:
+				deal_damage(target_node)
 		target_position = Vector2.ZERO
 		target_node = null
 		recalc_path()
@@ -68,10 +75,14 @@ func recalc_path() -> void:
 		nav_agent.target_position = target_node.position
 
 
-func deal_damage(target: CharacterBody2D) -> void:
+func deal_damage(target: Node) -> void:
 	if not target.has_method("take_damage"):
 		return
+	if attack_counter > 0:
+		return
+	print("attack")
 	target.take_damage(damage)
+	attack_counter = 20
 
 func take_damage(damage1: int) -> void:
 	hp -= damage1

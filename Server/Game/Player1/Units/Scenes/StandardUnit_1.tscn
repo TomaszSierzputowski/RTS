@@ -17,6 +17,9 @@ collision_layer = 2
 collision_mask = 7
 script = ExtResource("1_cw5r4")
 nav_agent = NodePath("Navigation/NavigationAgent2D")
+hp = 150
+max_hp = 150
+damage = 5.0
 
 [node name="Sprite2D" type="Sprite2D" parent="."]
 scale = Vector2(0.175, 0.175)

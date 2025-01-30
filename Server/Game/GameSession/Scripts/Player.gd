@@ -6,17 +6,17 @@ class_name Player
 var Base: BaseBuilding1
 var units: Array = []
 var next_id = 0
-var resources: int = 1000000
+var resources: int = 200
 
-var BaseBuildingCost: int = 500
-var MineCost: int = 100
+var BaseBuildingCost: int = 0
+var MineCost: int = 50
 var FastUnitFacotryCost: int = 100
-var StandardUnitFacotryCost: int = 100
+var StandardUnitFacotryCost: int = 600
 var HeavyUnitFacotryCost: int = 100
-var WorkerUnitCost: int = 25
-var FastUnitCost: int = 25
-var StandardUnitCost: int = 25
-var HeavyUnitCost: int = 25
+var WorkerUnitCost: int = 10
+var FastUnitCost: int = 15
+var StandardUnitCost: int = 30
+var HeavyUnitCost: int = 30
 
 
 # Lista odblokowanych jednostek
