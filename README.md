@@ -11,7 +11,7 @@ The game uses:
 - UDP to communicate in game.
 
 Game mechanics:
-- creating building,
+- creating buildings,
 - summoning units,
 - controlling units to:
   - move (auto pathfiding),
